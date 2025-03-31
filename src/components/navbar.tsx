@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,7 @@ import {
 
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const { data: session } = useSession();
 
   return (
     <nav className='border-b'>
@@ -23,12 +24,14 @@ export function Navbar() {
           <Link href='/' className='mr-6 flex items-center space-x-2'>
             <span className='hidden font-bold sm:inline-block'>Health App</span>
           </Link>
-          <Link
-            href='/dashboard'
-            className='text-sm font-medium transition-colors hover:text-primary'
-          >
-            Dashboard
-          </Link>
+          {session && (
+            <Link
+              href='/dashboard'
+              className='text-sm font-medium transition-colors hover:text-primary'
+            >
+              Dashboard
+            </Link>
+          )}
         </div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
@@ -45,20 +48,32 @@ export function Navbar() {
             <MobileLink href='/' onOpenChange={setIsOpen}>
               Home
             </MobileLink>
+            {session && (
+              <MobileLink href='/dashboard' onOpenChange={setIsOpen}>
+                Dashboard
+              </MobileLink>
+            )}
           </SheetContent>
         </Sheet>
         <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
           <div className='w-full flex-1 md:w-auto md:flex-none'></div>
-          <Button
-            onClick={() =>
-              signOut({
-                callbackUrl: '/',
-                redirect: true,
-              })
-            }
-          >
-            Logout
-          </Button>
+          {session ? (
+            <Button
+              className='cursor-pointer'
+              onClick={() =>
+                signOut({
+                  callbackUrl: '/',
+                  redirect: true,
+                })
+              }
+            >
+              Logout
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href='/api/auth/signin'>Login</Link>
+            </Button>
+          )}
         </div>
       </div>
     </nav>

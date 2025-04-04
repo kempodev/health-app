@@ -12,7 +12,6 @@ export async function addMeasurement(formData: FormData) {
   }
 
   const value = parseFloat(formData.get('value') as string);
-  const date = formData.get('date') as string;
   const type = formData.get('metricType') as MetricType;
   const unit = formData.get('unit') as UnitType;
 
@@ -26,7 +25,6 @@ export async function addMeasurement(formData: FormData) {
       metricValue: metricValue,
       originalValue: value,
       originalUnit: unit,
-      recordedAt: new Date(date),
     },
   });
 
@@ -45,7 +43,7 @@ export async function getMeasurements() {
       userId: session.user.id,
     },
     orderBy: {
-      recordedAt: 'desc',
+      createdAt: 'desc',
     },
   });
 

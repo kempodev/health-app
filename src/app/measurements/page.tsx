@@ -14,7 +14,6 @@ export default async function MeasurementsPage() {
   const rawMeasurements = await getMeasurements();
   const measurements = rawMeasurements.map((m) => ({
     ...m,
-    recordedAt: m.recordedAt.toISOString(),
     createdAt: m.createdAt.toISOString(),
     updatedAt: m.updatedAt.toISOString(),
   }));

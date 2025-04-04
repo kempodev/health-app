@@ -20,7 +20,6 @@ interface DbMeasurement {
   metricValue: number;
   originalValue: number;
   originalUnit: UnitType;
-  recordedAt: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,7 +77,7 @@ export function MeasurementWrapper({
             entries={measurements
               .filter((m) => m.metricType === selectedMetric)
               .map((m) => ({
-                date: new Date(m.recordedAt).toLocaleDateString(),
+                date: new Date(m.createdAt).toLocaleDateString(),
                 value: m.metricValue,
                 unit: m.originalUnit.toLowerCase(),
                 type: selectedMetric,
@@ -97,7 +96,7 @@ export function MeasurementWrapper({
             entries={measurements
               .filter((m) => m.metricType === selectedMetric)
               .map((m) => ({
-                date: new Date(m.recordedAt).toLocaleDateString(),
+                date: new Date(m.createdAt).toLocaleDateString(),
                 value: m.metricValue,
                 unit: m.originalUnit.toLowerCase(),
                 type: selectedMetric,

@@ -81,17 +81,6 @@ export function MeasurementForm({
           </Select>
         </div>
       </div>
-
-      <div>
-        <Label htmlFor='date'>Date</Label>
-        <Input
-          id='date'
-          name='date'
-          type='date'
-          required
-          defaultValue={new Date().toISOString().split('T')[0]}
-        />
-      </div>
       <Button type='submit' disabled={pending}>
         {pending ? 'Adding...' : 'Add Entry'}
       </Button>

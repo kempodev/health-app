@@ -111,14 +111,12 @@ model Measurement {
   metricValue   Float
   originalValue Float
   originalUnit  UnitType
-  recordedAt    DateTime
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@index([recordedAt])
 }
 
 model UserPreferences {

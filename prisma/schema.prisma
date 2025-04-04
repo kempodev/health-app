@@ -14,15 +14,17 @@ datasource db {
 }
 
 model User {
-  id            String          @id @default(cuid())
+  id            String            @id @default(cuid())
   name          String?
-  email         String          @unique
+  email         String            @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   // Optional for WebAuthn support
   Authenticator Authenticator[]
+  measurements  Measurement[]
+  preferences   UserPreferences[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -81,4 +83,54 @@ model Authenticator {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, credentialID])
+}
+
+enum MetricType {
+  weight
+  body_fat
+  chest
+  arm
+  waist
+  hip
+  thigh
+  calf
+}
+
+enum UnitType {
+  kg
+  lbs
+  percentage
+  cm
+  inches
+}
+
+model Measurement {
+  id            String     @id @default(cuid())
+  userId        String
+  metricType    MetricType
+  metricValue   Float
+  originalValue Float
+  originalUnit  UnitType
+  recordedAt    DateTime
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([recordedAt])
+}
+
+model UserPreferences {
+  id         String     @id @default(cuid())
+  userId     String     @unique
+  metricType MetricType
+  unit       UnitType
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, metricType])
+  @@index([userId])
 }

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -25,12 +25,20 @@ export function Navbar() {
             <span className='hidden font-bold sm:inline-block'>Health App</span>
           </Link>
           {session && (
-            <Link
-              href='/dashboard'
-              className='text-sm font-medium transition-colors hover:text-primary'
-            >
-              Dashboard
-            </Link>
+            <>
+              <Link
+                href='/dashboard'
+                className='mr-6 text-sm font-medium transition-colors hover:text-primary'
+              >
+                Dashboard
+              </Link>
+              <Link
+                href='/measurements'
+                className='text-sm font-medium transition-colors hover:text-primary'
+              >
+                Measurements
+              </Link>
+            </>
           )}
         </div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -49,9 +57,14 @@ export function Navbar() {
               Home
             </MobileLink>
             {session && (
-              <MobileLink href='/dashboard' onOpenChange={setIsOpen}>
-                Dashboard
-              </MobileLink>
+              <>
+                <MobileLink href='/dashboard' onOpenChange={setIsOpen}>
+                  Dashboard
+                </MobileLink>
+                <MobileLink href='/weight-tracker' onOpenChange={setIsOpen}>
+                  Weight Tracker
+                </MobileLink>
+              </>
             )}
           </SheetContent>
         </Sheet>
@@ -70,8 +83,11 @@ export function Navbar() {
               Logout
             </Button>
           ) : (
-            <Button asChild>
-              <Link href='/api/auth/signin'>Login</Link>
+            <Button
+              className='cursor-pointer'
+              onClick={() => signIn(undefined, { redirectTo: '/dashboard' })}
+            >
+              Login
             </Button>
           )}
         </div>

@@ -32,7 +32,7 @@ export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
           .map((entry, index) => (
             <TableRow key={index}>
               <TableCell>{entry.date}</TableCell>
-              <TableCell>{entry.value}</TableCell>
+              <TableCell>{entry.value.toFixed(1)}</TableCell>
               <TableCell>{entry.unit}</TableCell>
             </TableRow>
           ))}

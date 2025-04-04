@@ -5,6 +5,7 @@ import { MetricType, metricConfigs, UnitType } from '../types';
 import { MeasurementForm } from './MeasurementForm';
 import { MeasurementChart } from './MeasurementChart';
 import { MeasurementHistory } from './MeasurementHistory';
+import { convertFromBaseUnit } from '../utils';
 import {
   Select,
   SelectContent,
@@ -41,6 +42,32 @@ export function MeasurementWrapper({
   const [selectedMetric, setSelectedMetric] =
     useState<MetricType>(initialMetric);
 
+  const getPreferredUnit = (metricType: MetricType): UnitType => {
+    if (metricType === 'body_fat') return 'percentage';
+    const pref = userPreferences.find((p) => p.metricType === metricType);
+    return pref?.unit || metricConfigs[metricType].units[0];
+  };
+
+  const formatMeasurements = (measurements: DbMeasurement[]) => {
+    return measurements
+      .filter((m) => m.metricType === selectedMetric)
+      .map((m) => {
+        const preferredUnit = getPreferredUnit(selectedMetric);
+        const convertedValue = convertFromBaseUnit(
+          m.metricValue,
+          preferredUnit,
+          selectedMetric
+        );
+
+        return {
+          date: new Date(m.createdAt).toLocaleDateString(),
+          value: Number(convertedValue.toFixed(1)),
+          unit: preferredUnit.toLowerCase(),
+          type: selectedMetric,
+        };
+      });
+  };
+
   return (
     <div>
       <div className='flex justify-between items-center mb-8'>
@@ -74,14 +101,7 @@ export function MeasurementWrapper({
         <div>
           <h2 className='text-2xl font-semibold mb-4'>Progress Chart</h2>
           <MeasurementChart
-            entries={measurements
-              .filter((m) => m.metricType === selectedMetric)
-              .map((m) => ({
-                date: new Date(m.createdAt).toLocaleDateString(),
-                value: m.metricValue,
-                unit: m.originalUnit.toLowerCase(),
-                type: selectedMetric,
-              }))}
+            entries={formatMeasurements(measurements)}
             selectedMetric={selectedMetric}
           />
         </div>
@@ -92,16 +112,7 @@ export function MeasurementWrapper({
           {metricConfigs[selectedMetric].label} History
         </h2>
         <div className='overflow-x-auto'>
-          <MeasurementHistory
-            entries={measurements
-              .filter((m) => m.metricType === selectedMetric)
-              .map((m) => ({
-                date: new Date(m.createdAt).toLocaleDateString(),
-                value: m.metricValue,
-                unit: m.originalUnit.toLowerCase(),
-                type: selectedMetric,
-              }))}
-          />
+          <MeasurementHistory entries={formatMeasurements(measurements)} />
         </div>
       </div>
     </div>

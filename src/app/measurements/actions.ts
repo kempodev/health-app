@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { MetricType, UnitType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { convertToBaseUnit } from './utils';
 
+// Server actions
 export async function addMeasurement(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -65,19 +67,4 @@ export async function getUserPreferences() {
   });
 
   return preferences;
-}
-
-function convertToBaseUnit(
-  value: number,
-  unit: UnitType,
-  type: MetricType
-): number {
-  switch (type) {
-    case 'weight':
-      return unit === 'lbs' ? value * 0.45359237 : value;
-    case 'body_fat':
-      return value;
-    default:
-      return unit === 'inches' ? value * 2.54 : value;
-  }
 }

@@ -34,9 +34,15 @@ export function Navbar() {
               </Link>
               <Link
                 href='/measurements'
-                className='text-sm font-medium transition-colors hover:text-primary'
+                className='mr-6 text-sm font-medium transition-colors hover:text-primary'
               >
                 Measurements
+              </Link>
+              <Link
+                href='/profile'
+                className='text-sm font-medium transition-colors hover:text-primary'
+              >
+                Profile
               </Link>
             </>
           )}
@@ -61,8 +67,11 @@ export function Navbar() {
                 <MobileLink href='/dashboard' onOpenChange={setIsOpen}>
                   Dashboard
                 </MobileLink>
-                <MobileLink href='/weight-tracker' onOpenChange={setIsOpen}>
-                  Weight Tracker
+                <MobileLink href='/measurements' onOpenChange={setIsOpen}>
+                  Measurements
+                </MobileLink>
+                <MobileLink href='/profile' onOpenChange={setIsOpen}>
+                  Profile
                 </MobileLink>
               </>
             )}

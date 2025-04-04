@@ -52,6 +52,23 @@ export async function getMeasurements() {
   return measurements;
 }
 
+export async function getUserPreferences() {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
+  const preferences = await prisma.userPreferences.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      metricType: true,
+      unit: true,
+    },
+  });
+
+  return preferences;
+}
+
 function convertToBaseUnit(
   value: number,
   unit: UnitType,

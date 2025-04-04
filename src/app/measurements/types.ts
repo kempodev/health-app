@@ -31,3 +31,8 @@ export const metricConfigs: Record<
   thigh: { units: ['cm', 'inches'], label: 'Thigh' },
   calf: { units: ['cm', 'inches'], label: 'Calf' },
 };
+
+export type ActionResult<T> = {
+  data?: T;
+  error?: string;
+};

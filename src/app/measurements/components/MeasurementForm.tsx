@@ -30,21 +30,33 @@ export function MeasurementForm({
   const [selectedUnit, setSelectedUnit] = useState<UnitType>(
     getInitialUnit(selectedMetric, userPreferences)
   );
+  const [error, setError] = useState<string>('');
 
   // Update selected unit when metric changes
   useEffect(() => {
     setSelectedUnit(getInitialUnit(selectedMetric, userPreferences));
   }, [selectedMetric, userPreferences]);
 
+  const handleSubmit = async (formData: FormData) => {
+    const value = parseFloat(formData.get('value') as string);
+
+    if (value < 0) {
+      setError('Value cannot be negative');
+      return;
+    }
+
+    setError('');
+    const result = await addMeasurement(formData);
+
+    if (result.error) {
+      setError(result.error);
+    }
+  };
+
   const { pending } = useFormStatus();
 
   return (
-    <form
-      action={async (formData: FormData) => {
-        await addMeasurement(formData);
-      }}
-      className='space-y-4'
-    >
+    <form action={handleSubmit} className='space-y-4'>
       <input type='hidden' name='metricType' value={selectedMetric} />
       <input type='hidden' name='unit' value={selectedUnit} />
 
@@ -56,11 +68,14 @@ export function MeasurementForm({
             name='value'
             type='number'
             step='0.1'
+            min='0'
             required
             placeholder={`Enter ${metricConfigs[
               selectedMetric
             ].label.toLowerCase()}`}
+            onChange={() => setError('')}
           />
+          {error && <p className='text-sm text-red-500 mt-1'>{error}</p>}
         </div>
         <div>
           <Label htmlFor='unit'>Unit</Label>

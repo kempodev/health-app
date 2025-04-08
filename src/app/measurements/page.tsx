@@ -27,12 +27,12 @@ export default async function MeasurementsPage() {
   }));
 
   return (
-    <div className='container mx-auto px-4 py-8'>
+    <>
       <MeasurementWrapper
         initialMetric='weight'
         measurements={measurements}
         userPreferences={preferencesResult.data ?? []}
       />
-    </div>
+    </>
   );
 }

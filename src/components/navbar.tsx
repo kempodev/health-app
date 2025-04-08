@@ -58,23 +58,25 @@ export function Navbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side='left' className='pr-0'>
-            <SheetTitle>Navigation Menu</SheetTitle>
-            <MobileLink href='/' onOpenChange={setIsOpen}>
-              Home
-            </MobileLink>
-            {session && (
-              <>
-                <MobileLink href='/dashboard' onOpenChange={setIsOpen}>
-                  Dashboard
-                </MobileLink>
-                <MobileLink href='/measurements' onOpenChange={setIsOpen}>
-                  Measurements
-                </MobileLink>
-                <MobileLink href='/profile' onOpenChange={setIsOpen}>
-                  Profile
-                </MobileLink>
-              </>
-            )}
+            <SheetTitle className='ml-4 mt-4'>Navigation Menu</SheetTitle>
+            <div className='ml-4'>
+              <MobileLink href='/' onOpenChange={setIsOpen}>
+                Home
+              </MobileLink>
+              {session && (
+                <>
+                  <MobileLink href='/dashboard' onOpenChange={setIsOpen}>
+                    Dashboard
+                  </MobileLink>
+                  <MobileLink href='/measurements' onOpenChange={setIsOpen}>
+                    Measurements
+                  </MobileLink>
+                  <MobileLink href='/profile' onOpenChange={setIsOpen}>
+                    Profile
+                  </MobileLink>
+                </>
+              )}
+            </div>
           </SheetContent>
         </Sheet>
         <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>

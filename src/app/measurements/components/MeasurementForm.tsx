@@ -62,7 +62,9 @@ export function MeasurementForm({
 
       <div className='grid grid-cols-2 gap-4'>
         <div>
-          <Label htmlFor='value'>{metricConfigs[selectedMetric].label}</Label>
+          <Label htmlFor='value' className='mb-2'>
+            {metricConfigs[selectedMetric].label}
+          </Label>
           <Input
             id='value'
             name='value'
@@ -78,7 +80,9 @@ export function MeasurementForm({
           {error && <p className='text-sm text-red-500 mt-1'>{error}</p>}
         </div>
         <div>
-          <Label htmlFor='unit'>Unit</Label>
+          <Label htmlFor='unit' className='mb-2'>
+            Unit
+          </Label>
           <Select
             value={selectedUnit}
             onValueChange={(value: UnitType) => setSelectedUnit(value)}

@@ -70,13 +70,13 @@ export function MeasurementWrapper({
 
   return (
     <div>
-      <div className='flex justify-between items-center mb-8'>
+      <div className='flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8'>
         <h1 className='text-3xl font-bold'>Measurement Tracker</h1>
         <Select
           value={selectedMetric}
           onValueChange={(value: MetricType) => setSelectedMetric(value)}
         >
-          <SelectTrigger className='w-[180px]'>
+          <SelectTrigger className='w-full md:w-[180px]'>
             <SelectValue placeholder='Select measurement type' />
           </SelectTrigger>
           <SelectContent>

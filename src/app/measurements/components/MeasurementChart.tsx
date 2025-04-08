@@ -8,12 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
+import { ChartContainer, type ChartConfig } from '@/components/ui/chart';
 import { MeasurementEntry, MetricType } from '../types';
 
 interface MeasurementChartProps {
@@ -39,7 +34,7 @@ export function MeasurementChart({
     );
   }
   return (
-    <ChartContainer config={chartConfig} className='min-h-[200px] w-full'>
+    <ChartContainer config={chartConfig} className='w-full min-h-[160px]'>
       <LineChart
         accessibilityLayer
         data={entries.toReversed()}
@@ -63,10 +58,6 @@ export function MeasurementChart({
           axisLine={false}
           tickMargin={12}
           unit={entries[0].unit}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent indicator='line' />}
         />
         <Line
           dataKey='value'

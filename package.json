@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "migrate": "npx prisma migrate dev",
+    "studio": "npx prisma studio",
     "postinstall": "npx prisma generate"
   },
   "dependencies": {
@@ -25,7 +26,7 @@
     "next-auth": "^5.0.0-beta.25",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.15.1",
+    "recharts": "^2.15.2",
     "tailwind-merge": "^3.0.2",
     "tw-animate-css": "^1.2.5"
   },
@@ -41,5 +42,8 @@
     "prisma": "^6.5.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "react-is": "^19.0.0-rc-69d4b800-20241021"
   }
 }

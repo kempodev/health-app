@@ -93,7 +93,7 @@ export function MeasurementForm({
             <SelectContent>
               {metricConfigs[selectedMetric].units.map((unit) => (
                 <SelectItem key={unit} value={unit}>
-                  {unit}
+                  {unit === 'percentage' ? '%' : unit}
                 </SelectItem>
               ))}
             </SelectContent>

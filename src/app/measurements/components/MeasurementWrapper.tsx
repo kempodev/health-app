@@ -63,7 +63,8 @@ export function MeasurementWrapper({
           id: m.id,
           date: new Date(m.createdAt).toLocaleDateString(),
           value: Number(convertedValue.toFixed(1)),
-          unit: preferredUnit.toLowerCase(),
+          unit:
+            preferredUnit === 'percentage' ? '%' : preferredUnit.toLowerCase(),
           type: selectedMetric,
         };
       });

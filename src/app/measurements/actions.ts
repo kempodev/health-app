@@ -99,3 +99,39 @@ export async function getUserPreferences(): Promise<
     return { error: 'Failed to fetch preferences' };
   }
 }
+
+export async function deleteMeasurement(
+  id: string
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: 'Not authenticated' };
+    }
+
+    // Verify the measurement belongs to the user
+    const measurement = await prisma.measurement.findFirst({
+      where: {
+        id: id,
+        userId: session.user.id,
+      },
+    });
+
+    if (!measurement) {
+      return { error: 'Measurement not found' };
+    }
+
+    // Delete the measurement
+    await prisma.measurement.delete({
+      where: {
+        id: id,
+      },
+    });
+
+    revalidatePath('/measurements');
+    return { data: { id } };
+  } catch (e) {
+    console.error('Error deleting measurement:', e);
+    return { error: 'Failed to delete measurement' };
+  }
+}

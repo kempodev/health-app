@@ -60,6 +60,7 @@ export function MeasurementWrapper({
         );
 
         return {
+          id: m.id,
           date: new Date(m.createdAt).toLocaleDateString(),
           value: Number(convertedValue.toFixed(1)),
           unit: preferredUnit.toLowerCase(),

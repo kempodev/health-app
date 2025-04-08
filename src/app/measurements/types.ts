@@ -11,6 +11,7 @@ export type MetricType =
 export type UnitType = 'kg' | 'lbs' | 'percentage' | 'cm' | 'inches';
 
 export interface MeasurementEntry {
+  id: string;
   date: string;
   value: number;
   metricValue?: number;

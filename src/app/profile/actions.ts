@@ -1,22 +1,24 @@
 'use server';
+
+import { revalidatePath } from 'next/cache';
+
+import { MetricType, UnitType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
-import { MetricType, UnitType } from '@prisma/client';
-import { revalidatePath } from 'next/cache';
 import { ActionResult } from '../measurements/types';
 
 export async function saveUserPreferences(
   formData: FormData
 ): Promise<ActionResult<{ success: boolean }>> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: 'Not authenticated' };
-  }
-
-  const weightUnit = formData.get('weightUnit') as UnitType;
-  const lengthUnit = formData.get('lengthUnit') as UnitType;
-
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    const weightUnit = formData.get('weightUnit') as UnitType;
+    const lengthUnit = formData.get('lengthUnit') as UnitType;
+
     // Save weight preference
     await prisma.userPreferences.upsert({
       where: {

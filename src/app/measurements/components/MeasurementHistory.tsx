@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 interface MeasurementHistoryProps {
   entries: MeasurementEntry[];
@@ -36,8 +37,8 @@ export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
     try {
       setLoading(id);
       const result = await deleteMeasurement(id);
-      if (result.error) {
-        console.error(result.error);
+      if (!result.success) {
+        toast.error(result.error);
       }
     } finally {
       setLoading(null);

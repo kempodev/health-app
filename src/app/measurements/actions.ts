@@ -1,13 +1,14 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { MetricType, UnitType } from '@prisma/client';
-import { revalidatePath } from 'next/cache';
 import { convertToBaseUnit } from './utils';
 import { ActionResult } from './types';
 
-interface Measurement {
+type Measurement = {
   id: string;
   userId: string;
   metricType: MetricType;
@@ -16,7 +17,7 @@ interface Measurement {
   originalUnit: UnitType;
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
 export async function addMeasurement(
   formData: FormData
@@ -74,27 +75,6 @@ export async function getMeasurements(): Promise<ActionResult<Measurement[]>> {
   }
 }
 
-// export async function getUserPreferences(): Promise<
-//   ActionResult<UserPreference[]>
-// > {
-//   try {
-//     const session = await auth();
-//     if (!session?.user?.id) {
-//       return { error: 'Not authenticated' };
-//     }
-
-//     const preferences = await prisma.userPreferences.findMany({
-//       where: { userId: session.user.id },
-//       select: { metricType: true, unit: true },
-//     });
-
-//     return { data: preferences };
-//   } catch (e) {
-//     console.error('Error fetching user preferences:', e);
-//     return { error: 'Failed to fetch preferences' };
-//   }
-// }
-
 export async function deleteMeasurement(
   id: string
 ): Promise<ActionResult<{ id: string }>> {
@@ -127,6 +107,9 @@ export async function deleteMeasurement(
     return { success: true, data: { id } };
   } catch (e) {
     console.error('Error deleting measurement:', e);
-    return { success: false, error: 'Failed to delete measurement' };
+    return {
+      success: false,
+      error: 'Failed to delete measurement',
+    };
   }
 }

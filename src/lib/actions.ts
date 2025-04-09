@@ -16,16 +16,16 @@ export async function getUserPreferences(): Promise<
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { error: 'Not authenticated' };
+      return { success: false, error: 'Not authenticated' };
     }
 
     const preferences = await prisma.userPreferences.findMany({
       where: { userId: session.user.id },
     });
 
-    return { data: preferences };
+    return { success: true, data: preferences };
   } catch (e) {
     console.error('Error fetching user preferences:', e);
-    return { error: 'Failed to fetch preferences' };
+    return { success: false, error: 'Failed to fetch preferences' };
   }
 }

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,9 @@ import {
   SheetTrigger,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { ModeToggle } from './mode-toggle';
+import LogoutButton from './logout-button';
+import LoginButton from './login-button';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -25,7 +28,7 @@ export function Navbar() {
             <span className='hidden font-bold sm:inline-block'>Health App</span>
           </Link>
           {session && (
-            <>
+            <div className='flex items-center'>
               <Link
                 href='/dashboard'
                 className='mr-6 text-sm font-medium transition-colors hover:text-primary'
@@ -44,7 +47,7 @@ export function Navbar() {
               >
                 Profile
               </Link>
-            </>
+            </div>
           )}
         </div>
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -58,7 +61,7 @@ export function Navbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side='left' className='pr-0'>
-            <SheetTitle className='ml-4 mt-4'>Navigation Menu</SheetTitle>
+            <SheetTitle className='ml-4 mt-4'>Health App</SheetTitle>
             <div className='ml-4'>
               <MobileLink href='/' onOpenChange={setIsOpen}>
                 Home
@@ -76,31 +79,17 @@ export function Navbar() {
                   </MobileLink>
                 </>
               )}
+              <div className='mt-4'>
+                {session ? <LogoutButton /> : <LoginButton />}
+              </div>
             </div>
           </SheetContent>
         </Sheet>
-        <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
-          <div className='w-full flex-1 md:w-auto md:flex-none'></div>
-          {session ? (
-            <Button
-              className='cursor-pointer'
-              onClick={() =>
-                signOut({
-                  callbackUrl: '/',
-                  redirect: true,
-                })
-              }
-            >
-              Logout
-            </Button>
-          ) : (
-            <Button
-              className='cursor-pointer'
-              onClick={() => signIn(undefined, { redirectTo: '/dashboard' })}
-            >
-              Login
-            </Button>
-          )}
+        <div className='flex flex-1 items-center space-x-4 justify-end'>
+          <ModeToggle />
+          <div className='w-full flex-1 md:w-auto md:flex-none hidden md:block'>
+            {session ? <LogoutButton /> : <LoginButton />}
+          </div>
         </div>
       </div>
     </nav>

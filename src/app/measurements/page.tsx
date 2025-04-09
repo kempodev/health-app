@@ -1,7 +1,9 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getMeasurements, getUserPreferences } from './actions';
 import { MeasurementWrapper } from './components/MeasurementWrapper';
+
+import { getUserPreferences } from '@/lib/actions';
+import { getMeasurements } from './actions';
 
 export default async function MeasurementsPage() {
   const session = await auth();

@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { PreferencesForm } from './components/PreferencesForm';
-import { getUserPreferences } from './actions';
+import { getUserPreferences } from '@/lib/actions';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -10,7 +10,11 @@ export default async function ProfilePage() {
     redirect('/api/auth/signin?callbackUrl=/profile');
   }
 
-  const preferences = await getUserPreferences();
+  const preferencesResult = await getUserPreferences();
+  if (preferencesResult.error) {
+    return <div>Error: {preferencesResult.error}</div>;
+  }
+  const preferences = preferencesResult.data ?? [];
   const weightPref = preferences.find((p) => p.metricType === 'weight');
   const lengthPref = preferences.find((p) =>
     ['chest', 'arm', 'waist', 'hip', 'thigh', 'calf'].includes(p.metricType)

@@ -18,23 +18,18 @@ interface Measurement {
   updatedAt: Date;
 }
 
-interface UserPreference {
-  metricType: MetricType;
-  unit: UnitType;
-}
-
 export async function addMeasurement(
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { error: 'Not authenticated' };
+      return { success: false, error: 'Not authenticated' };
     }
 
     const value = parseFloat(formData.get('value') as string);
     if (value < 0) {
-      return { error: 'Value cannot be negative' };
+      return { success: false, error: 'Value cannot be negative' };
     }
 
     const type = formData.get('metricType') as MetricType;
@@ -53,10 +48,10 @@ export async function addMeasurement(
     });
 
     revalidatePath('/measurements');
-    return { data: measurement };
+    return { success: true, data: measurement };
   } catch (e) {
     console.error('Error adding measurement:', e);
-    return { error: 'Failed to add measurement' };
+    return { success: false, error: 'Failed to add measurement' };
   }
 }
 
@@ -64,7 +59,7 @@ export async function getMeasurements(): Promise<ActionResult<Measurement[]>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { error: 'Not authenticated' };
+      return { success: false, error: 'Not authenticated' };
     }
 
     const measurements = await prisma.measurement.findMany({
@@ -72,33 +67,33 @@ export async function getMeasurements(): Promise<ActionResult<Measurement[]>> {
       orderBy: { createdAt: 'desc' },
     });
 
-    return { data: measurements };
+    return { success: true, data: measurements };
   } catch (e) {
     console.error('Error fetching measurements:', e);
-    return { error: 'Failed to fetch measurements' };
+    return { success: false, error: 'Failed to fetch measurements' };
   }
 }
 
-export async function getUserPreferences(): Promise<
-  ActionResult<UserPreference[]>
-> {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { error: 'Not authenticated' };
-    }
+// export async function getUserPreferences(): Promise<
+//   ActionResult<UserPreference[]>
+// > {
+//   try {
+//     const session = await auth();
+//     if (!session?.user?.id) {
+//       return { error: 'Not authenticated' };
+//     }
 
-    const preferences = await prisma.userPreferences.findMany({
-      where: { userId: session.user.id },
-      select: { metricType: true, unit: true },
-    });
+//     const preferences = await prisma.userPreferences.findMany({
+//       where: { userId: session.user.id },
+//       select: { metricType: true, unit: true },
+//     });
 
-    return { data: preferences };
-  } catch (e) {
-    console.error('Error fetching user preferences:', e);
-    return { error: 'Failed to fetch preferences' };
-  }
-}
+//     return { data: preferences };
+//   } catch (e) {
+//     console.error('Error fetching user preferences:', e);
+//     return { error: 'Failed to fetch preferences' };
+//   }
+// }
 
 export async function deleteMeasurement(
   id: string
@@ -106,7 +101,7 @@ export async function deleteMeasurement(
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return { error: 'Not authenticated' };
+      return { success: false, error: 'Not authenticated' };
     }
 
     // Verify the measurement belongs to the user
@@ -118,7 +113,7 @@ export async function deleteMeasurement(
     });
 
     if (!measurement) {
-      return { error: 'Measurement not found' };
+      return { success: false, error: 'Measurement not found' };
     }
 
     // Delete the measurement
@@ -129,9 +124,9 @@ export async function deleteMeasurement(
     });
 
     revalidatePath('/measurements');
-    return { data: { id } };
+    return { success: true, data: { id } };
   } catch (e) {
     console.error('Error deleting measurement:', e);
-    return { error: 'Failed to delete measurement' };
+    return { success: false, error: 'Failed to delete measurement' };
   }
 }

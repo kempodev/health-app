@@ -1,29 +1,16 @@
 'use server';
-
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { MetricType, UnitType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { ActionResult } from '../measurements/types';
 
-export async function getUserPreferences() {
+export async function saveUserPreferences(
+  formData: FormData
+): Promise<ActionResult<{ success: boolean }>> {
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error('Not authenticated');
-  }
-
-  const preferences = await prisma.userPreferences.findMany({
-    where: {
-      userId: session.user.id,
-    },
-  });
-
-  return preferences;
-}
-
-export async function saveUserPreferences(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error('Not authenticated');
+    return { success: false, error: 'Not authenticated' };
   }
 
   const weightUnit = formData.get('weightUnit') as UnitType;
@@ -81,8 +68,9 @@ export async function saveUserPreferences(formData: FormData) {
 
     revalidatePath('/profile');
     revalidatePath('/measurements');
-  } catch (error) {
-    console.error('Failed to save preferences:', error);
-    throw new Error('Failed to save preferences');
+    return { success: true };
+  } catch (e) {
+    console.error('Failed to save preferences:', e);
+    return { success: false, error: 'Failed to save preferences' };
   }
 }

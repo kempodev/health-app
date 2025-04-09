@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,12 +12,14 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { UnitType } from '@prisma/client';
+import { toast } from 'sonner';
+
 import { saveUserPreferences } from '../actions';
 
-interface PreferencesFormProps {
+type PreferencesFormProps = {
   initialWeightUnit: UnitType;
   initialLengthUnit: UnitType;
-}
+};
 
 export function PreferencesForm({
   initialWeightUnit,
@@ -26,7 +27,17 @@ export function PreferencesForm({
 }: PreferencesFormProps) {
   const [weightUnit, setWeightUnit] = useState<UnitType>(initialWeightUnit);
   const [lengthUnit, setLengthUnit] = useState<UnitType>(initialLengthUnit);
-  const { pending } = useFormStatus();
+  const [state, submitAction, isPending] = useActionState(async () => {
+    const response = await saveUserPreferences(
+      new FormData(document.querySelector('form') as HTMLFormElement)
+    );
+    if (!response.success) {
+      toast.error(response.error || 'Failed to save preferences');
+    }
+    if (response.success) {
+      toast.success('Preferences saved successfully!');
+    }
+  }, null);
 
   return (
     <Card className='max-w-2xl'>
@@ -34,7 +45,7 @@ export function PreferencesForm({
         <CardTitle>Measurement Preferences</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={saveUserPreferences} className='space-y-6'>
+        <form action={submitAction} className='space-y-6'>
           <div className='space-y-2'>
             <Label htmlFor='weightUnit'>Weight Unit</Label>
             <Select
@@ -69,8 +80,8 @@ export function PreferencesForm({
             </Select>
           </div>
 
-          <Button type='submit' disabled={pending}>
-            {pending ? 'Saving...' : 'Save Preferences'}
+          <Button type='submit' disabled={isPending} className='cursor-pointer'>
+            {isPending ? 'Saving...' : 'Save Preferences'}
           </Button>
         </form>
       </CardContent>

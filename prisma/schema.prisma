@@ -14,9 +14,9 @@ datasource db {
 }
 
 model User {
-  id            String            @id @default(cuid())
+  id            String              @id @default(cuid())
   name          String?
-  email         String            @unique
+  email         String              @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
@@ -25,6 +25,7 @@ model User {
   Authenticator Authenticator[]
   measurements  Measurement[]
   preferences   UserPreferences[]
+  targets       MeasurementTarget[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -123,6 +124,21 @@ model UserPreferences {
   id         String     @id @default(cuid())
   userId     String
   metricType MetricType
+  unit       UnitType
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, metricType])
+  @@index([userId])
+}
+
+model MeasurementTarget {
+  id         String     @id @default(cuid())
+  userId     String
+  metricType MetricType
+  value      Float
   unit       UnitType
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 

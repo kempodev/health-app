@@ -34,7 +34,7 @@ export function PreferencesForm({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [state, submitAction, isPending] = useActionState(async () => {
     const formdata = new FormData(
-      document.querySelector('form') as HTMLFormElement
+      document.getElementById('preferences-form') as HTMLFormElement
     );
     const result = await saveUserPreferences(formdata);
     if (!result.success) {
@@ -47,7 +47,7 @@ export function PreferencesForm({
   }, initialState);
 
   return (
-    <form action={submitAction} className='space-y-6'>
+    <form action={submitAction} id='preferences-form' className='space-y-6'>
       <div className='space-y-2'>
         <Label htmlFor='weightUnit'>Weight Unit</Label>
         <Select

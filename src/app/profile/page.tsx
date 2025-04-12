@@ -1,8 +1,9 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { PreferencesForm } from './components/PreferencesForm';
-import { getUserPreferences } from '@/lib/actions';
+import { getUserPreferences, getTargets } from '@/lib/actions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TargetSettings } from './components/TargetSettings';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -21,20 +22,37 @@ export default async function ProfilePage() {
     ['chest', 'arm', 'waist', 'hip', 'thigh', 'calf'].includes(p.metricType)
   );
 
+  const targetsResult = await getTargets();
+  const targets = targetsResult.data ?? [];
+
   return (
     <>
       <h1 className='text-3xl font-bold mb-8'>Profile Settings</h1>
-      <Card className='max-w-2xl'>
-        <CardHeader>
-          <CardTitle>Measurement Preferences</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PreferencesForm
-            initialWeightUnit={weightPref?.unit ?? 'kg'}
-            initialLengthUnit={lengthPref?.unit ?? 'cm'}
-          />
-        </CardContent>
-      </Card>
+      <div className='space-y-8'>
+        <Card className='max-w-2xl'>
+          <CardHeader>
+            <CardTitle>Measurement Preferences</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PreferencesForm
+              initialWeightUnit={weightPref?.unit ?? 'kg'}
+              initialLengthUnit={lengthPref?.unit ?? 'cm'}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className='max-w-2xl'>
+          <CardHeader>
+            <CardTitle>Measurement Targets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TargetSettings
+              initialTargets={targets}
+              userPreferences={preferences}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </>
   );
 }

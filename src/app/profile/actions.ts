@@ -76,3 +76,66 @@ export async function saveUserPreferences(
     return { success: false, error: 'Failed to save preferences' };
   }
 }
+
+export async function saveTargets(
+  formData: FormData
+): Promise<ActionResult<{ success: boolean }>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    const targets = formData
+      .getAll('targets')
+      .map((t) => JSON.parse(t.toString()));
+    const targetsToDelete = formData
+      .getAll('targetsToDelete')
+      .map((t) => JSON.parse(t.toString()));
+
+    // Delete targets with value 0
+    if (targetsToDelete.length > 0) {
+      await prisma.measurementTarget.deleteMany({
+        where: {
+          userId: session.user.id,
+          metricType: {
+            in: targetsToDelete as MetricType[],
+          },
+        },
+      });
+    }
+
+    // Update/create remaining targets
+    if (targets.length > 0) {
+      await Promise.all(
+        targets.map(
+          (target: { metricType: MetricType; value: number; unit: UnitType }) =>
+            prisma.measurementTarget.upsert({
+              where: {
+                userId_metricType: {
+                  userId: session?.user?.id as string,
+                  metricType: target.metricType,
+                },
+              },
+              update: {
+                value: target.value,
+                unit: target.unit,
+              },
+              create: {
+                userId: session?.user?.id as string,
+                metricType: target.metricType,
+                value: target.value,
+                unit: target.unit,
+              },
+            })
+        )
+      );
+    }
+
+    revalidatePath('/profile');
+    return { success: true, data: { success: true } };
+  } catch (e) {
+    console.error('Error saving targets:', e);
+    return { success: false, error: 'Failed to save targets' };
+  }
+}

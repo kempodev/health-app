@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface DbMeasurement {
+type DbMeasurement = {
   id: string;
   userId: string;
   metricType: MetricType;
@@ -23,21 +23,27 @@ interface DbMeasurement {
   originalUnit: UnitType;
   createdAt: string;
   updatedAt: string;
-}
+};
 
-interface MeasurementWrapperProps {
+type MeasurementWrapperProps = {
   initialMetric: MetricType;
   measurements: DbMeasurement[];
   userPreferences: {
     metricType: MetricType;
     unit: UnitType;
   }[];
-}
+  targets: {
+    metricType: MetricType;
+    value: number;
+    unit: UnitType;
+  }[];
+};
 
 export function MeasurementWrapper({
   initialMetric,
   measurements,
   userPreferences = [],
+  targets = [],
 }: MeasurementWrapperProps) {
   const [selectedMetric, setSelectedMetric] =
     useState<MetricType>(initialMetric);
@@ -68,6 +74,17 @@ export function MeasurementWrapper({
           type: selectedMetric,
         };
       });
+  };
+
+  // Add function to get and convert target value
+  const getTargetValue = () => {
+    const target = targets.find((t) => t.metricType === selectedMetric);
+    if (!target) return undefined;
+
+    const preferredUnit = getPreferredUnit(selectedMetric);
+    if (target.unit === preferredUnit) return target.value;
+
+    return convertFromBaseUnit(target.value, preferredUnit, selectedMetric);
   };
 
   return (
@@ -105,6 +122,7 @@ export function MeasurementWrapper({
           <MeasurementChart
             entries={formatMeasurements(measurements)}
             selectedMetric={selectedMetric}
+            target={getTargetValue()}
           />
         </div>
       </div>

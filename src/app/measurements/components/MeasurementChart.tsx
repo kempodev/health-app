@@ -5,20 +5,23 @@ import {
   LabelList,
   Line,
   LineChart,
+  ReferenceLine,
   XAxis,
   YAxis,
 } from 'recharts';
 import { ChartContainer, type ChartConfig } from '@/components/ui/chart';
 import { MeasurementEntry, MetricType } from '../types';
 
-interface MeasurementChartProps {
+type MeasurementChartProps = {
   entries: MeasurementEntry[];
   selectedMetric: MetricType;
-}
+  target?: number;
+};
 
 export function MeasurementChart({
   entries,
   selectedMetric,
+  target,
 }: MeasurementChartProps) {
   const chartConfig = {
     value: {
@@ -46,6 +49,13 @@ export function MeasurementChart({
         }}
       >
         <CartesianGrid vertical={false} />
+        {target && target > 0 && (
+          <ReferenceLine
+            y={target}
+            label={`Target: ${target}`}
+            stroke='var(--chart-3)'
+          />
+        )}
         <XAxis
           dataKey='date'
           tickLine={false}
@@ -58,6 +68,10 @@ export function MeasurementChart({
           axisLine={false}
           tickMargin={12}
           unit={entries[0].unit}
+          domain={[
+            (dataMin: number) => Math.min(dataMin, target || 0) - 10,
+            (dataMax: number) => Math.max(dataMax, target || 0) + 10,
+          ]}
         />
         <Line
           dataKey='value'

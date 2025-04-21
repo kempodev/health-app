@@ -36,6 +36,11 @@ export function MeasurementChart({
       </div>
     );
   }
+
+  // Calculate min and max values from entries
+  const minValue = Math.min(...entries.map((entry) => entry.value));
+  const maxValue = Math.max(...entries.map((entry) => entry.value));
+
   return (
     <ChartContainer config={chartConfig} className='w-full min-h-[160px]'>
       <LineChart
@@ -68,10 +73,7 @@ export function MeasurementChart({
           axisLine={false}
           tickMargin={12}
           unit={entries[0].unit}
-          domain={[
-            (dataMin: number) => Math.min(dataMin, target || 0) - 10,
-            (dataMax: number) => Math.max(dataMax, target || 0) + 10,
-          ]}
+          domain={calculateDomain(minValue, maxValue, target)}
         />
         <Line
           dataKey='value'
@@ -96,4 +98,18 @@ export function MeasurementChart({
       </LineChart>
     </ChartContainer>
   );
+}
+
+function calculateDomain(
+  min: number,
+  max: number,
+  target?: number
+): [number | 'auto', number | 'auto'] {
+  if (target && target < min) {
+    return [target, 'auto'];
+  }
+  if (target && target > max) {
+    return ['auto', target];
+  }
+  return ['auto', 'auto'];
 }

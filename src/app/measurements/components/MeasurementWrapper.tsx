@@ -73,7 +73,7 @@ export function MeasurementWrapper({
           id: m.id,
           date: new Date(m.createdAt).toLocaleDateString(),
           rawDate: m.createdAt,
-          value: Number(convertedValue.toFixed(1)),
+          value: Number(convertedValue.toFixed(2)),
           unit:
             preferredUnit === 'percentage' ? '%' : preferredUnit.toLowerCase(),
           type: selectedMetric,

@@ -47,7 +47,11 @@ export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
     {
       accessorKey: 'value',
       header: 'Value',
-      cell: function ValueCell({ row }: { row: any }) {
+      cell: function ValueCell({
+        row,
+      }: {
+        row: { getValue: (key: string) => number };
+      }) {
         const value = row.getValue('value') as number;
         return <span>{value.toFixed(1)}</span>;
       },
@@ -58,7 +62,11 @@ export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
     },
     {
       id: 'actions',
-      cell: function ActionsCell({ row }: { row: any }) {
+      cell: function ActionsCell({
+        row,
+      }: {
+        row: { original: MeasurementEntry };
+      }) {
         const entry = row.original;
         return (
           <AlertDialog>

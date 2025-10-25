@@ -48,6 +48,10 @@ export function MeasurementWrapper({
   const [selectedMetric, setSelectedMetric] =
     useState<MetricType>(initialMetric);
 
+  // Timeframe for chart filter: 1 month, 3 months, 6 months, 12 months, or all time
+  type Timeframe = '1m' | '3m' | '6m' | '12m' | 'all';
+  const [timeframe, setTimeframe] = useState<Timeframe>('3m');
+
   const getPreferredUnit = (metricType: MetricType): UnitType => {
     if (metricType === 'body_fat') return 'percentage';
     const pref = userPreferences.find((p) => p.metricType === metricType);
@@ -68,12 +72,33 @@ export function MeasurementWrapper({
         return {
           id: m.id,
           date: new Date(m.createdAt).toLocaleDateString(),
+          rawDate: m.createdAt,
           value: Number(convertedValue.toFixed(1)),
           unit:
             preferredUnit === 'percentage' ? '%' : preferredUnit.toLowerCase(),
           type: selectedMetric,
         };
       });
+  };
+
+  // Return formatted entries filtered by the selected timeframe (for the chart)
+  const getFilteredEntries = () => {
+    const formatted = formatMeasurements(measurements);
+    if (timeframe === 'all') return formatted;
+
+    const now = new Date();
+    const cutoff = new Date(now);
+    const months =
+      timeframe === '1m'
+        ? 1
+        : timeframe === '3m'
+        ? 3
+        : timeframe === '6m'
+        ? 6
+        : 12;
+    cutoff.setMonth(cutoff.getMonth() - months);
+
+    return formatted.filter((e) => new Date(e.rawDate) >= cutoff);
   };
 
   // Add function to get and convert target value
@@ -119,8 +144,25 @@ export function MeasurementWrapper({
 
         <div>
           <h2 className='text-2xl font-semibold mb-4'>Progress Chart</h2>
+          <div className='flex justify-end mb-4'>
+            <Select
+              value={timeframe}
+              onValueChange={(v: Timeframe) => setTimeframe(v)}
+            >
+              <SelectTrigger className='w-full md:w-[160px]'>
+                <SelectValue placeholder='Timeframe' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='1m'>Last month</SelectItem>
+                <SelectItem value='3m'>Last 3 months</SelectItem>
+                <SelectItem value='6m'>Last 6 months</SelectItem>
+                <SelectItem value='12m'>Last 12 months</SelectItem>
+                <SelectItem value='all'>All time</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <MeasurementChart
-            entries={formatMeasurements(measurements)}
+            entries={getFilteredEntries()}
             selectedMetric={selectedMetric}
             target={getTargetValue()}
           />

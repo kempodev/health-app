@@ -10,7 +10,9 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartContainer, type ChartConfig } from '@/components/ui/chart';
-import { MeasurementEntry, MetricType } from '../types';
+import { MeasurementEntry } from '../types';
+import { MetricType } from '@/app/types';
+import { unitSignMap } from '@/lib/utils';
 
 type MeasurementChartProps = {
   entries: MeasurementEntry[];
@@ -66,13 +68,12 @@ export function MeasurementChart({
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          // tickFormatter={(value) => value.slice(0, 3)}
         />
         <YAxis
           tickLine={false}
           axisLine={false}
           tickMargin={12}
-          unit={entries[0].unit}
+          unit={unitSignMap.get(entries[0].unit)}
           domain={calculateDomain(minValue, maxValue, target)}
         />
         <Line

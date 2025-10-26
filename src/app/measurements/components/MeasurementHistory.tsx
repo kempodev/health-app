@@ -19,9 +19,9 @@ import {
 import { toast } from 'sonner';
 import { DataTable } from './data-table';
 
-interface MeasurementHistoryProps {
+type MeasurementHistoryProps = {
   entries: MeasurementEntry[];
-}
+};
 
 export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
   const [loading, setLoading] = useState<string | null>(null);

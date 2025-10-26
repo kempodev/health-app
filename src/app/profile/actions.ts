@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { MetricType, UnitType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
-import { ActionResult } from '../measurements/types';
+import { ActionResult } from '../types';
 
 export async function saveUserPreferences(
   formData: FormData

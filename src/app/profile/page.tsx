@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth';
+import { type MetricType, type UnitType } from '@/app/types';
 import { redirect } from 'next/navigation';
 import { PreferencesForm } from './components/PreferencesForm';
 import { getUserPreferences, getTargets } from '@/lib/actions';
@@ -16,7 +17,10 @@ export default async function ProfilePage() {
   if (preferencesResult.error) {
     return <div>Error: {preferencesResult.error}</div>;
   }
-  const preferences = preferencesResult.data ?? [];
+  const preferences = (preferencesResult.data ?? []) as {
+    metricType: MetricType;
+    unit: UnitType;
+  }[];
   const weightPref = preferences.find((p) => p.metricType === 'weight');
   const lengthPref = preferences.find((p) =>
     ['chest', 'arm', 'waist', 'hip', 'thigh', 'calf'].includes(p.metricType)

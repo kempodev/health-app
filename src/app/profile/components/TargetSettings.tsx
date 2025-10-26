@@ -3,11 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MetricType, UnitType, metricConfigs } from '@/app/measurements/types';
 import { useState, useEffect } from 'react';
 import { saveTargets } from '../actions';
 import { toast } from 'sonner';
 import { useActionState } from 'react';
+import { metricConfigs, MetricType, UnitType } from '@/app/types';
 
 const convertValue = (
   value: number,

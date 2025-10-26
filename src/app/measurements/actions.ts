@@ -5,8 +5,9 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { MetricType, UnitType } from '@prisma/client';
-import { convertToBaseUnit } from './utils';
-import { ActionResult } from './types';
+
+import { convertToBaseUnit } from '@/lib/utils';
+import { ActionResult } from '@/app/types';
 
 type Measurement = {
   id: string;

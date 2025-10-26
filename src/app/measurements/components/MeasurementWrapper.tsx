@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { MetricType, metricConfigs, UnitType } from '../types';
 import { MeasurementForm } from './MeasurementForm';
 import { MeasurementChart } from './MeasurementChart';
 import { MeasurementHistory } from './MeasurementHistory';
-import { convertFromBaseUnit } from '../utils';
 import {
   Select,
   SelectContent,
@@ -13,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { convertFromBaseUnit } from '@/lib/utils';
+import { metricConfigs, MetricType, UnitType } from '@/app/types';
 
 type DbMeasurement = {
   id: string;
@@ -74,8 +74,7 @@ export function MeasurementWrapper({
           date: new Date(m.createdAt).toLocaleDateString(),
           rawDate: m.createdAt,
           value: Number(convertedValue.toFixed(2)),
-          unit:
-            preferredUnit === 'percentage' ? '%' : preferredUnit.toLowerCase(),
+          unit: preferredUnit,
           type: selectedMetric,
         };
       });

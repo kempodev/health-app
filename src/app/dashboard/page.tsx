@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import CurrentWeightCard from './components/CurrentWeightCard';
+import MeasurementCard from './components/MeasurementCard';
 
 export default async function Dashboard() {
   const session = await auth();
@@ -15,10 +15,10 @@ export default async function Dashboard() {
         <p className='mb-6'>Welcome to the dashboard, {session?.user?.name}!</p>
       </div>
 
-      <div className='flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8'>
-        <div className='flex-1'>
-          <CurrentWeightCard userId={userId} userName={session?.user?.name} />
-        </div>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <MeasurementCard userId={userId} metricType='weight' />
+        <MeasurementCard userId={userId} metricType='waist' />
+        <MeasurementCard userId={userId} metricType='body_fat' />
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 'use server';
 
-import { ActionResult } from '@/app/measurements/types';
+import { ActionResult } from '@/app/types';
 import { MeasurementTarget, MetricType, UnitType } from '@prisma/client';
 import { auth } from './auth';
 import { prisma } from './prisma';

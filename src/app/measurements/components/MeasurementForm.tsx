@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MetricType, UnitType, metricConfigs } from '../types';
 import { addMeasurement } from '../actions';
+import { metricConfigs, MetricType, UnitType } from '@/app/types';
 
 type MeasurementFormProps = {
   selectedMetric: MetricType;
@@ -73,9 +73,7 @@ export function MeasurementForm({
             step='0.01'
             min='0'
             required
-            placeholder={`Enter ${metricConfigs[
-              selectedMetric
-            ].label.toLowerCase()}`}
+            placeholder={`Enter ${metricConfigs[selectedMetric].label}`}
           />
           {state.error && (
             <p className='text-sm text-red-500 mt-2'>{state.error}</p>

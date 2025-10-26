@@ -41,17 +41,21 @@ export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
   // columns definition here
   const columns = [
     {
-      accessorKey: 'date',
+      accessorKey: 'rawDate',
       header: 'Date',
+      cell: ({ row }: { row: { getValue: (key: string) => Date } }) => {
+        const date = row.getValue('rawDate') as Date;
+        return (
+          <time dateTime={date.toISOString()}>
+            {new Date(date).toLocaleDateString()}
+          </time>
+        );
+      },
     },
     {
       accessorKey: 'value',
       header: 'Value',
-      cell: function ValueCell({
-        row,
-      }: {
-        row: { getValue: (key: string) => number };
-      }) {
+      cell: ({ row }: { row: { getValue: (key: string) => number } }) => {
         const value = row.getValue('value') as number;
         return <span>{value.toFixed(1)}</span>;
       },
@@ -62,11 +66,7 @@ export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
     },
     {
       id: 'actions',
-      cell: function ActionsCell({
-        row,
-      }: {
-        row: { original: MeasurementEntry };
-      }) {
+      cell: ({ row }: { row: { original: MeasurementEntry } }) => {
         const entry = row.original;
         return (
           <AlertDialog>

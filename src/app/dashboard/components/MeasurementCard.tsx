@@ -135,14 +135,19 @@ export default async function MeasurementCard({
             metricType
           ).toFixed(1)
         );
-        deltaDisplay = `${sign}${absDelta} ${unitSignMap.get(preferredUnit) ?? preferredUnit}`;
+        deltaDisplay = `${sign}${absDelta} ${
+          unitSignMap.get(preferredUnit) ?? preferredUnit
+        }`;
       } else {
         const absDelta = Number(
           Math.abs(
             latestMeasurement.originalValue - previous.originalValue
           ).toFixed(1)
         );
-        deltaDisplay = `${sign}${absDelta} ${unitSignMap.get(latestMeasurement.originalUnit) ?? latestMeasurement.originalUnit}`;
+        deltaDisplay = `${sign}${absDelta} ${
+          unitSignMap.get(latestMeasurement.originalUnit) ??
+          latestMeasurement.originalUnit
+        }`;
       }
 
       if (previous.metricValue !== 0) {
@@ -186,7 +191,7 @@ export default async function MeasurementCard({
           </div>
         ) : (
           <div className='text-sm text-muted-foreground'>
-            No {metricType} recorded yet.
+            No {getMetricDisplayName(metricType).toLowerCase()} recorded yet.
           </div>
         )}
 

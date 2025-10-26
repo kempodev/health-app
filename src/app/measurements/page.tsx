@@ -28,8 +28,6 @@ export default async function MeasurementsPage() {
 
   const measurements = (measurementsResult.data ?? []).map((m) => ({
     ...m,
-    createdAt: m.createdAt.toISOString(),
-    updatedAt: m.updatedAt.toISOString(),
   }));
 
   return (

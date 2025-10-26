@@ -64,7 +64,7 @@ export function MeasurementChart({
           />
         )}
         <XAxis
-          dataKey='date'
+          dataKey='shortDate'
           tickLine={false}
           axisLine={false}
           tickMargin={8}

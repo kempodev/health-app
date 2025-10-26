@@ -21,8 +21,8 @@ type DbMeasurement = {
   metricValue: number;
   originalValue: number;
   originalUnit: UnitType;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 type MeasurementWrapperProps = {
@@ -71,7 +71,10 @@ export function MeasurementWrapper({
 
         return {
           id: m.id,
-          date: new Date(m.createdAt).toLocaleDateString(),
+          shortDate: new Intl.DateTimeFormat(undefined, {
+            day: 'numeric',
+            month: 'numeric',
+          }).format(new Date(m.createdAt)),
           rawDate: m.createdAt,
           value: Number(convertedValue.toFixed(2)),
           unit: preferredUnit,

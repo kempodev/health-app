@@ -1,4 +1,4 @@
-A health tracking app
+A health tracking app for all
 
 ## Getting Started
 

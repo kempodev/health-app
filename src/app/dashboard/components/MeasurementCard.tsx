@@ -1,5 +1,3 @@
-'use server';
-
 import {
   Card,
   CardAction,
@@ -10,23 +8,23 @@ import {
 } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { prisma } from '@/lib/prisma';
+import { createClient } from '@/lib/supabase/server';
 import {
   convertFromBaseUnit,
   convertToBaseUnit,
   getMetricDisplayName,
   unitSignMap,
 } from '@/lib/utils';
-import { type UnitType, type MetricType } from '@prisma/client';
+import { type UnitType, type MetricType } from '@/app/types';
 
 type Measurement = {
   id: string;
-  userId: string;
-  metricType: MetricType;
-  metricValue: number;
-  originalValue: number;
-  originalUnit: UnitType;
-  createdAt: Date;
+  user_id: string;
+  metric_type: MetricType;
+  metric_value: number;
+  original_value: number;
+  original_unit: UnitType;
+  created_at: string;
 };
 
 type Target = {
@@ -35,41 +33,54 @@ type Target = {
 };
 
 type Props = {
-  userId: string;
   metricType: MetricType;
-  measurement?: Measurement | null; // optional pre-fetched measurement
-  target?: Target | null; // optional pre-fetched target
-  userPreferenceUnit?: UnitType | null; // optional pre-fetched preference
+  measurement?: Measurement | null;
+  target?: Target | null;
+  userPreferenceUnit?: UnitType | null;
   showDelta?: boolean;
 };
 
 export default async function MeasurementCard({
-  userId,
   metricType,
   measurement = null,
   target = null,
   userPreferenceUnit = null,
   showDelta = true,
 }: Props) {
+  const supabase = await createClient();
+
   // If measurement/target/pref not passed, fetch them
-  const latestMeasurement: Measurement | null =
-    measurement ||
-    (await prisma.measurement.findFirst({
-      where: { userId, metricType },
-      orderBy: { createdAt: 'desc' },
-    }));
+  let latestMeasurement: Measurement | null = measurement;
+  if (!latestMeasurement) {
+    const { data } = await supabase
+      .from('measurements')
+      .select('*')
+      .eq('metric_type', metricType)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    latestMeasurement = data as Measurement | null;
+  }
 
-  const weightTarget =
-    target ||
-    (await prisma.measurementTarget.findFirst({
-      where: { userId, metricType },
-    }));
+  let weightTarget: Target | null = target;
+  if (!weightTarget) {
+    const { data } = await supabase
+      .from('measurement_targets')
+      .select('value, unit')
+      .eq('metric_type', metricType)
+      .maybeSingle();
+    weightTarget = data as Target | null;
+  }
 
-  const userPref =
-    userPreferenceUnit ||
-    (await prisma.userPreferences.findFirst({ where: { userId, metricType } }))
-      ?.unit ||
-    null;
+  let userPref: UnitType | null = userPreferenceUnit;
+  if (!userPref) {
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('unit')
+      .eq('metric_type', metricType)
+      .maybeSingle();
+    userPref = (data?.unit as UnitType) ?? null;
+  }
 
   const preferredUnit = userPref as UnitType | undefined;
 
@@ -80,17 +91,17 @@ export default async function MeasurementCard({
     if (preferredUnit) {
       displayValue = Number(
         convertFromBaseUnit(
-          latestMeasurement.metricValue,
+          latestMeasurement.metric_value,
           preferredUnit,
           metricType
         ).toFixed(1)
       );
       displayUnit = unitSignMap.get(preferredUnit) ?? preferredUnit;
     } else {
-      displayValue = Number(latestMeasurement.originalValue.toFixed(1));
+      displayValue = Number(latestMeasurement.original_value.toFixed(1));
       displayUnit =
-        unitSignMap.get(latestMeasurement.originalUnit) ??
-        latestMeasurement.originalUnit;
+        unitSignMap.get(latestMeasurement.original_unit) ??
+        latestMeasurement.original_unit;
     }
   }
 
@@ -118,14 +129,17 @@ export default async function MeasurementCard({
   let deltaDisplay: string | null = null;
   let deltaPercentDisplay: string | null = null;
   if (showDelta && latestMeasurement) {
-    const recent = await prisma.measurement.findMany({
-      where: { userId, metricType },
-      orderBy: { createdAt: 'desc' },
-      take: 2,
-    });
-    const previous = recent.length > 1 ? recent[1] : null;
+    const { data: recent } = await supabase
+      .from('measurements')
+      .select('*')
+      .eq('metric_type', metricType)
+      .order('created_at', { ascending: false })
+      .limit(2);
+
+    const recentMeasurements = (recent as Measurement[]) ?? [];
+    const previous = recentMeasurements.length > 1 ? recentMeasurements[1] : null;
     if (previous) {
-      const deltaBase = latestMeasurement.metricValue - previous.metricValue;
+      const deltaBase = latestMeasurement.metric_value - previous.metric_value;
       const sign = deltaBase >= 0 ? '+' : '-';
       if (preferredUnit) {
         const absDelta = Number(
@@ -141,17 +155,17 @@ export default async function MeasurementCard({
       } else {
         const absDelta = Number(
           Math.abs(
-            latestMeasurement.originalValue - previous.originalValue
+            latestMeasurement.original_value - previous.original_value
           ).toFixed(1)
         );
         deltaDisplay = `${sign}${absDelta} ${
-          unitSignMap.get(latestMeasurement.originalUnit) ??
-          latestMeasurement.originalUnit
+          unitSignMap.get(latestMeasurement.original_unit) ??
+          latestMeasurement.original_unit
         }`;
       }
 
-      if (previous.metricValue !== 0) {
-        const percent = (deltaBase / previous.metricValue) * 100;
+      if (previous.metric_value !== 0) {
+        const percent = (deltaBase / previous.metric_value) * 100;
         deltaPercentDisplay = `${percent >= 0 ? '+' : ''}${percent.toFixed(
           1
         )}%`;
@@ -170,12 +184,12 @@ export default async function MeasurementCard({
             <div className='text-2xl font-semibold'>
               {displayValue !== null
                 ? displayValue
-                : latestMeasurement.originalValue}{' '}
+                : latestMeasurement.original_value}{' '}
               {displayUnit}
             </div>
             <div className='text-sm text-muted-foreground'>
               Recorded on{' '}
-              {new Date(latestMeasurement.createdAt).toLocaleDateString()}
+              {new Date(latestMeasurement.created_at).toLocaleDateString()}
             </div>
             {deltaDisplay && (
               <div className='text-sm'>

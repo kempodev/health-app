@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import SessionProvider from '@/components/providers/SessionProvider';
 import { Navbar } from '@/components/navbar';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
@@ -27,24 +26,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SessionProvider>
-      <html lang='en' suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    <html lang='en' suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='system'
+          enableSystem
+          disableTransitionOnChange
         >
-          <ThemeProvider
-            attribute='class'
-            defaultTheme='system'
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Navbar />
-            <main className='container mx-auto px-4 py-8'>{children}</main>
-            <Toaster richColors position='bottom-center' />
-          </ThemeProvider>
-        </body>
-      </html>
-    </SessionProvider>
+          <Navbar />
+          <main className='container mx-auto px-4 py-8'>{children}</main>
+          <Toaster richColors position='bottom-center' />
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
-

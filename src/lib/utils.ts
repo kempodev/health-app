@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { MetricType, UnitType } from '@prisma/client';
+import { MetricType, UnitType } from '@/app/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

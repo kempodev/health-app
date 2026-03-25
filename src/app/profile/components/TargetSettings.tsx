@@ -33,7 +33,7 @@ function getPreferredUnit(
   preferences: TargetSettingsProps['userPreferences']
 ): UnitType {
   if (metricType === 'body_fat') return 'percentage';
-  const pref = preferences.find((p) => p.metricType === metricType);
+  const pref = preferences.find((p) => p.metric_type === metricType);
   return pref?.unit || metricConfigs[metricType].units[0];
 }
 
@@ -44,9 +44,13 @@ type Target = {
 };
 
 type TargetSettingsProps = {
-  initialTargets: Target[];
+  initialTargets: {
+    metric_type: MetricType;
+    value: number;
+    unit: UnitType;
+  }[];
   userPreferences: {
-    metricType: MetricType;
+    metric_type: MetricType;
     unit: UnitType;
   }[];
 };
@@ -65,7 +69,7 @@ export function TargetSettings({
   const [targets, setTargets] = useState<Target[]>(() => {
     return Object.keys(metricConfigs).map((metric) => {
       const existingTarget = initialTargets.find(
-        (t) => t.metricType === (metric as MetricType)
+        (t) => t.metric_type === (metric as MetricType)
       );
       const preferredUnit = getPreferredUnit(
         metric as MetricType,
@@ -76,7 +80,7 @@ export function TargetSettings({
         // If the target exists but has a different unit, convert the value
         if (existingTarget.unit !== preferredUnit) {
           return {
-            ...existingTarget,
+            metricType: existingTarget.metric_type,
             value: convertValue(
               existingTarget.value,
               existingTarget.unit,
@@ -85,7 +89,11 @@ export function TargetSettings({
             unit: preferredUnit,
           };
         }
-        return existingTarget;
+        return {
+          metricType: existingTarget.metric_type,
+          value: existingTarget.value,
+          unit: existingTarget.unit,
+        };
       }
 
       // If no target exists, create a new one with preferred unit

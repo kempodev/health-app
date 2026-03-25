@@ -19,7 +19,7 @@ import { metricConfigs, MetricType, UnitType } from '@/app/types';
 type MeasurementFormProps = {
   selectedMetric: MetricType;
   userPreferences?: {
-    metricType: MetricType;
+    metric_type: MetricType;
     unit: UnitType;
   }[];
 };
@@ -110,12 +110,12 @@ export function MeasurementForm({
 // Helper function to determine initial unit
 function getInitialUnit(
   metricType: MetricType,
-  preferences: { metricType: MetricType; unit: UnitType }[]
+  preferences: { metric_type: MetricType; unit: UnitType }[]
 ): UnitType {
   if (metricType === 'body_fat') {
     return 'percentage';
   }
 
-  const preference = preferences.find((pref) => pref.metricType === metricType);
+  const preference = preferences.find((pref) => pref.metric_type === metricType);
   return preference?.unit || metricConfigs[metricType].units[0];
 }

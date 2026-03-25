@@ -2,30 +2,19 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
-import { MetricType, UnitType } from '@prisma/client';
-
+import { createClient } from '@/lib/supabase/server';
+import { MetricType, UnitType, Measurement, ActionResult } from '@/app/types';
 import { convertToBaseUnit } from '@/lib/utils';
-import { ActionResult } from '@/app/types';
-
-type Measurement = {
-  id: string;
-  userId: string;
-  metricType: MetricType;
-  metricValue: number;
-  originalValue: number;
-  originalUnit: UnitType;
-  createdAt: Date;
-  updatedAt: Date;
-};
 
 export async function addMeasurement(
   formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
@@ -38,19 +27,22 @@ export async function addMeasurement(
     const unit = formData.get('unit') as UnitType;
     const metricValue = convertToBaseUnit(value, unit, type);
 
-    const measurement = await prisma.measurement.create({
-      data: {
-        userId: session.user.id,
-        metricType: type,
-        metricValue: metricValue,
-        originalValue: value,
-        originalUnit: unit,
-      },
-      select: { id: true },
-    });
+    const { data, error } = await supabase
+      .from('measurements')
+      .insert({
+        user_id: user.id,
+        metric_type: type,
+        metric_value: metricValue,
+        original_value: value,
+        original_unit: unit,
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
 
     revalidatePath('/measurements');
-    return { success: true, data: measurement };
+    return { success: true, data: { id: data.id } };
   } catch (e) {
     console.error('Error adding measurement:', e);
     return { success: false, error: 'Failed to add measurement' };
@@ -59,17 +51,22 @@ export async function addMeasurement(
 
 export async function getMeasurements(): Promise<ActionResult<Measurement[]>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    const measurements = await prisma.measurement.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: 'desc' },
-    });
+    const { data, error } = await supabase
+      .from('measurements')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    return { success: true, data: measurements };
+    if (error) throw error;
+
+    return { success: true, data: data as Measurement[] };
   } catch (e) {
     console.error('Error fetching measurements:', e);
     return { success: false, error: 'Failed to fetch measurements' };
@@ -80,29 +77,20 @@ export async function deleteMeasurement(
   id: string
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    // Verify the measurement belongs to the user
-    const measurement = await prisma.measurement.findFirst({
-      where: {
-        id: id,
-        userId: session.user.id,
-      },
-    });
+    const { error } = await supabase
+      .from('measurements')
+      .delete()
+      .eq('id', id);
 
-    if (!measurement) {
-      return { success: false, error: 'Measurement not found' };
-    }
-
-    // Delete the measurement
-    await prisma.measurement.delete({
-      where: {
-        id: id,
-      },
-    });
+    if (error) throw error;
 
     revalidatePath('/measurements');
     return { success: true, data: { id } };

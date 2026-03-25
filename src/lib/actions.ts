@@ -1,29 +1,31 @@
 'use server';
 
-import { ActionResult } from '@/app/types';
-import { MeasurementTarget, MetricType, UnitType } from '@prisma/client';
-import { auth } from './auth';
-import { prisma } from './prisma';
-
-type UserPreference = {
-  metricType: MetricType;
-  unit: UnitType;
-};
+import {
+  ActionResult,
+  MeasurementTarget,
+  UserPreference,
+} from '@/app/types';
+import { createClient } from '@/lib/supabase/server';
 
 export async function getUserPreferences(): Promise<
   ActionResult<UserPreference[]>
 > {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    const preferences = await prisma.userPreferences.findMany({
-      where: { userId: session.user.id },
-    });
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('metric_type, unit');
 
-    return { success: true, data: preferences };
+    if (error) throw error;
+
+    return { success: true, data: data as UserPreference[] };
   } catch (e) {
     console.error('Error fetching user preferences:', e);
     return { success: false, error: 'Failed to fetch preferences' };
@@ -32,16 +34,21 @@ export async function getUserPreferences(): Promise<
 
 export async function getTargets(): Promise<ActionResult<MeasurementTarget[]>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    const targets = await prisma.measurementTarget.findMany({
-      where: { userId: session.user.id },
-    });
+    const { data, error } = await supabase
+      .from('measurement_targets')
+      .select('*');
 
-    return { success: true, data: targets };
+    if (error) throw error;
+
+    return { success: true, data: data as MeasurementTarget[] };
   } catch (e) {
     console.error('Error fetching targets:', e);
     return { success: false, error: 'Failed to fetch targets' };

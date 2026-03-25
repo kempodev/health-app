@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { UnitType } from '@prisma/client';
+import { UnitType } from '@/app/types';
 import { toast } from 'sonner';
 
 import { saveUserPreferences } from '../actions';

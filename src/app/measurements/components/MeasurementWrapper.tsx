@@ -16,24 +16,23 @@ import { metricConfigs, MetricType, UnitType } from '@/app/types';
 
 type DbMeasurement = {
   id: string;
-  userId: string;
-  metricType: MetricType;
-  metricValue: number;
-  originalValue: number;
-  originalUnit: UnitType;
-  createdAt: Date;
-  updatedAt: Date;
+  user_id: string;
+  metric_type: MetricType;
+  metric_value: number;
+  original_value: number;
+  original_unit: UnitType;
+  created_at: string;
 };
 
 type MeasurementWrapperProps = {
   initialMetric: MetricType;
   measurements: DbMeasurement[];
   userPreferences: {
-    metricType: MetricType;
+    metric_type: MetricType;
     unit: UnitType;
   }[];
   targets: {
-    metricType: MetricType;
+    metric_type: MetricType;
     value: number;
     unit: UnitType;
   }[];
@@ -54,17 +53,17 @@ export function MeasurementWrapper({
 
   const getPreferredUnit = (metricType: MetricType): UnitType => {
     if (metricType === 'body_fat') return 'percentage';
-    const pref = userPreferences.find((p) => p.metricType === metricType);
+    const pref = userPreferences.find((p) => p.metric_type === metricType);
     return pref?.unit || metricConfigs[metricType].units[0];
   };
 
   const formatMeasurements = (measurements: DbMeasurement[]) => {
     return measurements
-      .filter((m) => m.metricType === selectedMetric)
+      .filter((m) => m.metric_type === selectedMetric)
       .map((m) => {
         const preferredUnit = getPreferredUnit(selectedMetric);
         const convertedValue = convertFromBaseUnit(
-          m.metricValue,
+          m.metric_value,
           preferredUnit,
           selectedMetric
         );
@@ -74,8 +73,8 @@ export function MeasurementWrapper({
           shortDate: new Intl.DateTimeFormat(undefined, {
             day: 'numeric',
             month: 'numeric',
-          }).format(new Date(m.createdAt)),
-          rawDate: m.createdAt,
+          }).format(new Date(m.created_at)),
+          rawDate: m.created_at,
           value: Number(convertedValue.toFixed(2)),
           unit: preferredUnit,
           type: selectedMetric,
@@ -105,7 +104,7 @@ export function MeasurementWrapper({
 
   // Add function to get and convert target value
   const getTargetValue = () => {
-    const target = targets.find((t) => t.metricType === selectedMetric);
+    const target = targets.find((t) => t.metric_type === selectedMetric);
     if (!target) return undefined;
 
     const preferredUnit = getPreferredUnit(selectedMetric);

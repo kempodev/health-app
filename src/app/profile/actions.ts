@@ -2,42 +2,24 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { MetricType, UnitType } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
-import { ActionResult } from '../types';
+import { MetricType, UnitType, ActionResult } from '@/app/types';
+import { createClient } from '@/lib/supabase/server';
 
 export async function saveUserPreferences(
   formData: FormData
 ): Promise<ActionResult<{ success: boolean }>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
     const weightUnit = formData.get('weightUnit') as UnitType;
     const lengthUnit = formData.get('lengthUnit') as UnitType;
 
-    // Save weight preference
-    await prisma.userPreferences.upsert({
-      where: {
-        userId_metricType: {
-          userId: session.user.id,
-          metricType: 'weight',
-        },
-      },
-      update: {
-        unit: weightUnit,
-      },
-      create: {
-        userId: session.user.id,
-        metricType: 'weight',
-        unit: weightUnit,
-      },
-    });
-
-    // Save length preference for all length-based metrics
     const lengthMetrics: MetricType[] = [
       'chest',
       'arm',
@@ -47,26 +29,20 @@ export async function saveUserPreferences(
       'calf',
     ];
 
-    await Promise.all(
-      lengthMetrics.map((metric) =>
-        prisma.userPreferences.upsert({
-          where: {
-            userId_metricType: {
-              userId: session?.user?.id as string,
-              metricType: metric,
-            },
-          },
-          update: {
-            unit: lengthUnit,
-          },
-          create: {
-            userId: session?.user?.id as string,
-            metricType: metric,
-            unit: lengthUnit,
-          },
-        })
-      )
-    );
+    const rows = [
+      { user_id: user.id, metric_type: 'weight' as MetricType, unit: weightUnit },
+      ...lengthMetrics.map((metric) => ({
+        user_id: user.id,
+        metric_type: metric,
+        unit: lengthUnit,
+      })),
+    ];
+
+    const { error } = await supabase
+      .from('user_preferences')
+      .upsert(rows, { onConflict: 'user_id,metric_type' });
+
+    if (error) throw error;
 
     revalidatePath('/profile');
     revalidatePath('/measurements');
@@ -81,8 +57,11 @@ export async function saveTargets(
   formData: FormData
 ): Promise<ActionResult<{ success: boolean }>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
 
@@ -95,41 +74,30 @@ export async function saveTargets(
 
     // Delete targets with value 0
     if (targetsToDelete.length > 0) {
-      await prisma.measurementTarget.deleteMany({
-        where: {
-          userId: session.user.id,
-          metricType: {
-            in: targetsToDelete as MetricType[],
-          },
-        },
-      });
+      const { error } = await supabase
+        .from('measurement_targets')
+        .delete()
+        .in('metric_type', targetsToDelete as MetricType[]);
+
+      if (error) throw error;
     }
 
     // Update/create remaining targets
     if (targets.length > 0) {
-      await Promise.all(
-        targets.map(
-          (target: { metricType: MetricType; value: number; unit: UnitType }) =>
-            prisma.measurementTarget.upsert({
-              where: {
-                userId_metricType: {
-                  userId: session?.user?.id as string,
-                  metricType: target.metricType,
-                },
-              },
-              update: {
-                value: target.value,
-                unit: target.unit,
-              },
-              create: {
-                userId: session?.user?.id as string,
-                metricType: target.metricType,
-                value: target.value,
-                unit: target.unit,
-              },
-            })
-        )
+      const rows = targets.map(
+        (target: { metricType: MetricType; value: number; unit: UnitType }) => ({
+          user_id: user.id,
+          metric_type: target.metricType,
+          value: target.value,
+          unit: target.unit,
+        })
       );
+
+      const { error } = await supabase
+        .from('measurement_targets')
+        .upsert(rows, { onConflict: 'user_id,metric_type' });
+
+      if (error) throw error;
     }
 
     revalidatePath('/profile');

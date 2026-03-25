@@ -43,11 +43,11 @@ export function MeasurementHistory({ entries }: MeasurementHistoryProps) {
     {
       accessorKey: 'rawDate',
       header: 'Date',
-      cell: ({ row }: { row: { getValue: (key: string) => Date } }) => {
-        const date = row.getValue('rawDate') as Date;
+      cell: ({ row }: { row: { getValue: (key: string) => string | Date } }) => {
+        const date = new Date(row.getValue('rawDate'));
         return (
           <time dateTime={date.toISOString()}>
-            {new Date(date).toLocaleDateString()}
+            {date.toLocaleDateString()}
           </time>
         );
       },

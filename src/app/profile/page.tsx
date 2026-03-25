@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/server';
 import { type MetricType, type UnitType } from '@/app/types';
 import { redirect } from 'next/navigation';
 import { PreferencesForm } from './components/PreferencesForm';
@@ -7,10 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TargetSettings } from './components/TargetSettings';
 
 export default async function ProfilePage() {
-  const session = await auth();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
-    redirect('/api/auth/signin?callbackUrl=/profile');
+  if (!user) {
+    redirect('/auth/login');
   }
 
   const preferencesResult = await getUserPreferences();
@@ -18,12 +21,12 @@ export default async function ProfilePage() {
     return <div>Error: {preferencesResult.error}</div>;
   }
   const preferences = (preferencesResult.data ?? []) as {
-    metricType: MetricType;
+    metric_type: MetricType;
     unit: UnitType;
   }[];
-  const weightPref = preferences.find((p) => p.metricType === 'weight');
+  const weightPref = preferences.find((p) => p.metric_type === 'weight');
   const lengthPref = preferences.find((p) =>
-    ['chest', 'arm', 'waist', 'hip', 'thigh', 'calf'].includes(p.metricType)
+    ['chest', 'arm', 'waist', 'hip', 'thigh', 'calf'].includes(p.metric_type)
   );
 
   const targetsResult = await getTargets();

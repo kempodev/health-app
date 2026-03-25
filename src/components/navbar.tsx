@@ -3,7 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { type User } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,20 @@ import LoginButton from './login-button';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const { data: session } = useSession();
+  const [user, setUser] = React.useState<User | null>(null);
+  const supabase = React.useMemo(() => createClient(), []);
+
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   return (
     <nav className='border-b'>
@@ -27,7 +41,7 @@ export function Navbar() {
           <Link href='/' className='mr-6 flex items-center space-x-2'>
             <span className='hidden font-bold sm:inline-block'>Health App</span>
           </Link>
-          {session && (
+          {user && (
             <div className='flex items-center'>
               <Link
                 href='/dashboard'
@@ -66,7 +80,7 @@ export function Navbar() {
               <MobileLink href='/' onOpenChange={setIsOpen}>
                 Home
               </MobileLink>
-              {session && (
+              {user && (
                 <>
                   <MobileLink href='/dashboard' onOpenChange={setIsOpen}>
                     Dashboard
@@ -80,7 +94,7 @@ export function Navbar() {
                 </>
               )}
               <div className='mt-4'>
-                {session ? <LogoutButton /> : <LoginButton />}
+                {user ? <LogoutButton /> : <LoginButton />}
               </div>
             </div>
           </SheetContent>
@@ -88,7 +102,7 @@ export function Navbar() {
         <div className='flex flex-1 items-center space-x-4 justify-end'>
           <ModeToggle />
           <div className='w-full flex-1 md:w-auto md:flex-none hidden md:block'>
-            {session ? <LogoutButton /> : <LoginButton />}
+            {user ? <LogoutButton /> : <LoginButton />}
           </div>
         </div>
       </div>

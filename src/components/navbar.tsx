@@ -94,7 +94,11 @@ export function Navbar() {
                 </>
               )}
               <div className='mt-4'>
-                {user ? <LogoutButton /> : <LoginButton />}
+                {user ? (
+                  <LogoutButton onClick={() => setIsOpen(false)} />
+                ) : (
+                  <LoginButton onClick={() => setIsOpen(false)} />
+                )}
               </div>
             </div>
           </SheetContent>

@@ -22,10 +22,11 @@ const convertValue = (
   if (fromUnit === 'inches') metricValue = value * 2.54;
 
   // Then convert to target unit
-  if (toUnit === 'lbs') return metricValue / 0.453592;
-  if (toUnit === 'inches') return metricValue / 2.54;
+  let result = metricValue;
+  if (toUnit === 'lbs') result = metricValue / 0.453592;
+  if (toUnit === 'inches') result = metricValue / 2.54;
 
-  return metricValue;
+  return Math.round(result * 100) / 100;
 };
 
 function getPreferredUnit(

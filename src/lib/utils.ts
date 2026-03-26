@@ -26,14 +26,19 @@ export function convertFromBaseUnit(
   targetUnit: UnitType,
   type: MetricType
 ): number {
+  let result: number;
   switch (type) {
     case 'weight':
-      return targetUnit === 'lbs' ? value / 0.45359237 : value;
+      result = targetUnit === 'lbs' ? value / 0.45359237 : value;
+      break;
     case 'body_fat':
-      return value;
+      result = value;
+      break;
     default:
-      return targetUnit === 'inches' ? value / 2.54 : value;
+      result = targetUnit === 'inches' ? value / 2.54 : value;
+      break;
   }
+  return Math.round(result * 100) / 100;
 }
 
 export function getMetricDisplayName(metricType: MetricType): string {

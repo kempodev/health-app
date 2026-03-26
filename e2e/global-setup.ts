@@ -21,7 +21,7 @@ setup('authenticate test user', async ({ page }) => {
     });
     if (error) throw new Error(`Failed to create test user: ${error.message}`);
   } else {
-    await admin.auth.admin.updateUser(existingUser.id, { password });
+    await admin.auth.admin.updateUserById(existingUser.id, { password });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

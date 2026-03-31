@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Menu } from 'lucide-react';
+import { Menu, ChevronDown } from 'lucide-react';
 import { type User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
@@ -13,6 +13,12 @@ import {
   SheetTrigger,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ModeToggle } from './mode-toggle';
 import LogoutButton from './logout-button';
 import LoginButton from './login-button';
@@ -55,6 +61,23 @@ export function Navbar() {
               >
                 Measurements
               </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className='mr-6 flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary'>
+                  Gym
+                  <ChevronDown className='h-3 w-3' />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <Link href='/workouts'>Workouts</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href='/schedules'>Schedules</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href='/workout-logs'>Workout Log</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Link
                 href='/profile'
                 className='text-sm font-medium transition-colors hover:text-primary'
@@ -87,6 +110,15 @@ export function Navbar() {
                   </MobileLink>
                   <MobileLink href='/measurements' onOpenChange={setIsOpen}>
                     Measurements
+                  </MobileLink>
+                  <MobileLink href='/workouts' onOpenChange={setIsOpen}>
+                    Workouts
+                  </MobileLink>
+                  <MobileLink href='/schedules' onOpenChange={setIsOpen}>
+                    Schedules
+                  </MobileLink>
+                  <MobileLink href='/workout-logs' onOpenChange={setIsOpen}>
+                    Workout Log
                   </MobileLink>
                   <MobileLink href='/profile' onOpenChange={setIsOpen}>
                     Profile

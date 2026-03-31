@@ -103,8 +103,105 @@ export async function seedPreference(
   return data;
 }
 
+export async function seedWorkout(
+  userId: string,
+  overrides: {
+    name?: string;
+    description?: string;
+  } = {}
+) {
+  const { data, error } = await getAdminClient()
+    .from('workouts')
+    .insert({
+      user_id: userId,
+      name: overrides.name ?? 'Test Workout',
+      description: overrides.description ?? '',
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function seedWorkoutExercise(
+  workoutId: string,
+  overrides: {
+    exercise_id?: string;
+    position?: number;
+    sets?: number;
+    reps?: number;
+    weight_kg?: number | null;
+    rest_seconds?: number;
+  } = {}
+) {
+  const { data, error } = await getAdminClient()
+    .from('workout_exercises')
+    .insert({
+      workout_id: workoutId,
+      exercise_id: overrides.exercise_id ?? 'Barbell_Bench_Press_-_Medium_Grip',
+      position: overrides.position ?? 0,
+      sets: overrides.sets ?? 3,
+      reps: overrides.reps ?? 10,
+      weight_kg: overrides.weight_kg ?? 60,
+      rest_seconds: overrides.rest_seconds ?? 60,
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function seedSchedule(
+  userId: string,
+  overrides: {
+    name?: string;
+    is_active?: boolean;
+  } = {}
+) {
+  const { data, error } = await getAdminClient()
+    .from('weekly_schedules')
+    .insert({
+      user_id: userId,
+      name: overrides.name ?? 'Test Schedule',
+      is_active: overrides.is_active ?? false,
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function seedScheduleEntry(
+  scheduleId: string,
+  workoutId: string,
+  overrides: {
+    day_of_week?: number;
+  } = {}
+) {
+  const { data, error } = await getAdminClient()
+    .from('schedule_entries')
+    .insert({
+      schedule_id: scheduleId,
+      workout_id: workoutId,
+      day_of_week: overrides.day_of_week ?? 0,
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function cleanupTestData(userId: string) {
   const client = getAdminClient();
+  // Gym features (cascade handles children, but delete in order for safety)
+  await client.from('workout_logs').delete().eq('user_id', userId);
+  await client.from('weekly_schedules').delete().eq('user_id', userId);
+  await client.from('workouts').delete().eq('user_id', userId);
+  // Original tables
   await client.from('measurements').delete().eq('user_id', userId);
   await client.from('measurement_targets').delete().eq('user_id', userId);
   await client.from('user_preferences').delete().eq('user_id', userId);

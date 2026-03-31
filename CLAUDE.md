@@ -41,6 +41,10 @@ Server Actions (src/app/*/actions.ts) ← Server Components
 - **Measurements:** [src/app/measurements/actions.ts](src/app/measurements/actions.ts) — add, get, delete measurements
 - **Profile/Preferences:** [src/app/profile/actions.ts](src/app/profile/actions.ts) and [src/lib/actions.ts](src/lib/actions.ts) — user unit preferences and targets per metric
 - **Dashboard:** [src/app/dashboard/](src/app/dashboard/) — shows latest values for weight, waist, body_fat
+- **Workouts:** [src/app/workouts/actions.ts](src/app/workouts/actions.ts) — CRUD workout templates, add/remove/reorder exercises, duplicate workouts
+- **Schedules:** [src/app/schedules/actions.ts](src/app/schedules/actions.ts) — CRUD weekly schedules, assign workouts to days, set active schedule
+- **Workout Logs:** [src/app/workout-logs/actions.ts](src/app/workout-logs/actions.ts) — start/complete workout sessions, log sets/reps/weights
+- **Exercise data:** [src/lib/exercises.ts](src/lib/exercises.ts) — loads static exercise data from `exercises.json` (873 exercises), search/filter utilities
 
 ### Database Schema
 
@@ -48,16 +52,26 @@ Tables in Supabase `public` schema with RLS enabled. All reference `auth.users(i
 
 | Table                 | Purpose                                                                                   |
 | --------------------- | ----------------------------------------------------------------------------------------- |
-| `measurements`        | Health data points (metric_type, metric_value, original_value, original_unit, created_at) |
-| `user_preferences`    | Preferred units per metric_type. Unique on (user_id, metric_type)                         |
-| `measurement_targets` | Goal values per metric_type. Unique on (user_id, metric_type)                             |
+| `measurements`          | Health data points (metric_type, metric_value, original_value, original_unit, created_at) |
+| `user_preferences`      | Preferred units per metric_type. Unique on (user_id, metric_type)                         |
+| `measurement_targets`   | Goal values per metric_type. Unique on (user_id, metric_type)                             |
+| `workouts`              | Reusable workout templates (name, description). Duplicate for variations                  |
+| `workout_exercises`     | Exercises within a workout template (exercise_id, position, sets, reps, weight_kg, rest)  |
+| `weekly_schedules`      | Named weekly schedules with is_active flag. Partial unique index on active                |
+| `schedule_entries`      | Workout-to-day assignments. UNIQUE(schedule_id, workout_id, day_of_week)                  |
+| `workout_logs`          | Completed/in-progress workout sessions. Snapshots workout name                            |
+| `workout_log_exercises` | Individual sets performed (exercise_id, set_number, reps, weight_kg, completed)           |
 
 **Enums (PostgreSQL):**
 
 - `metric_type`: `weight`, `body_fat`, `chest`, `arm`, `waist`, `hip`, `thigh`, `calf`
 - `unit_type`: `kg`, `lbs`, `percentage`, `cm`, `inches`
 
-**TypeScript types:** Defined in [src/app/types.ts](src/app/types.ts) — `MetricType`, `UnitType`, `Measurement`, `MeasurementTarget`, `UserPreference`, `ActionResult`
+**TypeScript types:** Defined in [src/app/types.ts](src/app/types.ts) — `MetricType`, `UnitType`, `Measurement`, `MeasurementTarget`, `UserPreference`, `ActionResult`, `Exercise`, `MuscleGroup`, `DayOfWeek`
+
+Feature-specific types in: [src/app/workouts/types.ts](src/app/workouts/types.ts), [src/app/schedules/types.ts](src/app/schedules/types.ts), [src/app/workout-logs/types.ts](src/app/workout-logs/types.ts)
+
+**Exercise images:** Prefixed with `https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/` — configured in `next.config.ts` remotePatterns. Exercise weights stored in kg (base unit), converted using same utilities as measurements.
 
 ### Shared UI Components
 

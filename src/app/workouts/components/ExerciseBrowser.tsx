@@ -11,11 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import type { Exercise } from '@/app/types';
 import {
   searchExercises,
@@ -45,7 +41,7 @@ export default function ExerciseBrowser({
   const [equipment, setEquipment] = React.useState('');
   const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
   const [detailExercise, setDetailExercise] = React.useState<Exercise | null>(
-    null
+    null,
   );
 
   const results = React.useMemo(
@@ -56,7 +52,7 @@ export default function ExerciseBrowser({
         category: category && category !== 'all' ? category : undefined,
         equipment: equipment && equipment !== 'all' ? equipment : undefined,
       }),
-    [query, muscle, category, equipment]
+    [query, muscle, category, equipment],
   );
 
   const visibleResults = results.slice(0, visibleCount);
@@ -68,25 +64,25 @@ export default function ExerciseBrowser({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl h-[80vh] !flex flex-col p-0 overflow-hidden">
-          <div className="p-4 pb-0 space-y-3">
+        <DialogContent className='max-w-2xl h-[80vh] !flex flex-col p-0 overflow-hidden'>
+          <div className='p-4 pb-0 space-y-3'>
             <DialogTitle>Add Exercise</DialogTitle>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className='relative'>
+              <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
               <Input
-                placeholder="Search exercises..."
+                placeholder='Search exercises...'
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pl-9"
+                className='pl-9'
               />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className='grid grid-cols-3 gap-2'>
               <Select value={muscle} onValueChange={setMuscle}>
-                <SelectTrigger className="text-xs">
-                  <SelectValue placeholder="Muscle" />
+                <SelectTrigger className='text-xs w-full'>
+                  <SelectValue placeholder='Muscle' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Muscles</SelectItem>
+                  <SelectItem value='all'>All Muscles</SelectItem>
                   {ALL_MUSCLES.map((m) => (
                     <SelectItem key={m} value={m}>
                       {m}
@@ -95,11 +91,11 @@ export default function ExerciseBrowser({
                 </SelectContent>
               </Select>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="text-xs">
-                  <SelectValue placeholder="Category" />
+                <SelectTrigger className='text-xs w-full'>
+                  <SelectValue placeholder='Category' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value='all'>All Categories</SelectItem>
                   {ALL_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
@@ -108,11 +104,11 @@ export default function ExerciseBrowser({
                 </SelectContent>
               </Select>
               <Select value={equipment} onValueChange={setEquipment}>
-                <SelectTrigger className="text-xs">
-                  <SelectValue placeholder="Equipment" />
+                <SelectTrigger className='text-xs w-full'>
+                  <SelectValue placeholder='Equipment' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Equipment</SelectItem>
+                  <SelectItem value='all'>All Equipment</SelectItem>
                   {ALL_EQUIPMENT.map((eq) => (
                     <SelectItem key={eq} value={eq}>
                       {eq}
@@ -121,13 +117,13 @@ export default function ExerciseBrowser({
                 </SelectContent>
               </Select>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className='text-xs text-muted-foreground'>
               {results.length} exercise{results.length !== 1 ? 's' : ''} found
             </p>
           </div>
 
-          <ScrollArea className="flex-1 min-h-0 px-4 pb-4">
-            <div className="space-y-2">
+          <ScrollArea className='flex-1 min-h-0 px-4 pb-4'>
+            <div className='space-y-2'>
               {visibleResults.map((exercise) => (
                 <ExerciseCard
                   key={exercise.id}
@@ -142,7 +138,7 @@ export default function ExerciseBrowser({
               {visibleCount < results.length && (
                 <button
                   onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                  className="w-full text-center py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className='w-full text-center py-2 text-sm text-muted-foreground hover:text-foreground transition-colors'
                 >
                   Show more ({results.length - visibleCount} remaining)
                 </button>
@@ -162,3 +158,4 @@ export default function ExerciseBrowser({
     </>
   );
 }
+

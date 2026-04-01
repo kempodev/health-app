@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Copy, Dumbbell, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,15 +60,9 @@ function WorkoutCard({
   onDuplicate: (id: string, name: string) => void;
 }) {
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const router = useRouter();
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('[data-workout-menu]')) return;
-    router.push(`/workouts/${workout.id}`);
-  };
 
   return (
-    <Card className='cursor-pointer hover:bg-accent/50 transition-colors' onClick={handleCardClick}>
+    <Card>
       <CardHeader className='pb-2'>
         <div className='flex items-start justify-between gap-2'>
           <CardTitle className='text-base'>
@@ -77,7 +70,7 @@ function WorkoutCard({
           </CardTitle>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant='ghost' size='icon' className='h-8 w-8 shrink-0' data-workout-menu>
+              <Button variant='ghost' size='icon' className='h-8 w-8 shrink-0'>
                 <MoreVertical className='h-4 w-4' />
               </Button>
             </DropdownMenuTrigger>

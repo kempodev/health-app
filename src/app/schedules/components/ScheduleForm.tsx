@@ -51,19 +51,21 @@ export default function ScheduleForm({
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className='space-y-6'>
+      <form onSubmit={handleSubmit} className='space-y-4'>
         <div>
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor='name' className='mb-2'>
+            Name
+          </Label>
           <Input
-            id="name"
-            name="name"
+            id='name'
+            name='name'
             defaultValue={schedule?.name ?? ''}
-            placeholder="e.g. PPL Split"
+            placeholder='e.g. PPL Split'
             required
           />
         </div>
-        <Button type="submit" disabled={isSaving}>
+        <Button type='submit' disabled={isSaving}>
           {isSaving
             ? isEditing
               ? 'Saving...'
@@ -76,9 +78,9 @@ export default function ScheduleForm({
 
       {isEditing && (
         <>
-          <h3 className="text-lg font-semibold">Weekly Plan</h3>
+          <h3 className='text-lg font-semibold'>Weekly Plan</h3>
           {workouts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className='text-sm text-muted-foreground'>
               Create some workouts first before assigning them to days.
             </p>
           ) : (
@@ -93,3 +95,4 @@ export default function ScheduleForm({
     </div>
   );
 }
+

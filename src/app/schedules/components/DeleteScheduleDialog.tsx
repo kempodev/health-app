@@ -10,21 +10,22 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { deleteSchedule } from '../actions';
 
 type DeleteScheduleDialogProps = {
   scheduleId: string;
   scheduleName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
 export default function DeleteScheduleDialog({
   scheduleId,
   scheduleName,
+  open,
+  onOpenChange,
 }: DeleteScheduleDialogProps) {
   const [isPending, setIsPending] = React.useState(false);
 
@@ -41,12 +42,7 @@ export default function DeleteScheduleDialog({
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive">
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Schedule</AlertDialogTitle>

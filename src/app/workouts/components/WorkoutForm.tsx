@@ -70,7 +70,7 @@ export default function WorkoutForm({ workout, weightUnit }: WorkoutFormProps) {
       10,
       null,
       weightUnit,
-      60
+      60,
     );
     if (!result.success) {
       toast.error(result.error);
@@ -84,7 +84,7 @@ export default function WorkoutForm({ workout, weightUnit }: WorkoutFormProps) {
     sets: number,
     reps: number,
     weight: number | null,
-    restSeconds: number
+    restSeconds: number,
   ) => {
     if (!workout) return;
     const result = await updateWorkoutExercise(
@@ -94,7 +94,7 @@ export default function WorkoutForm({ workout, weightUnit }: WorkoutFormProps) {
       reps,
       weight,
       weightUnit,
-      restSeconds
+      restSeconds,
     );
     if (!result.success) {
       toast.error(result.error);
@@ -120,29 +120,33 @@ export default function WorkoutForm({ workout, weightUnit }: WorkoutFormProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className='space-y-6'>
+      <form onSubmit={handleSubmit} className='space-y-4'>
         <div>
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor='name' className='mb-2'>
+            Name
+          </Label>
           <Input
-            id="name"
-            name="name"
+            id='name'
+            name='name'
             defaultValue={workout?.name ?? ''}
-            placeholder="e.g. Push Day"
+            placeholder='e.g. Push Day'
             required
           />
         </div>
         <div>
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor='description' className='mb-2'>
+            Description
+          </Label>
           <Textarea
-            id="description"
-            name="description"
+            id='description'
+            name='description'
             defaultValue={workout?.description ?? ''}
-            placeholder="Optional description..."
+            placeholder='Optional description...'
             rows={2}
           />
         </div>
-        <Button type="submit" disabled={isSaving}>
+        <Button type='submit' disabled={isSaving}>
           {isSaving
             ? isEditing
               ? 'Saving...'
@@ -155,14 +159,14 @@ export default function WorkoutForm({ workout, weightUnit }: WorkoutFormProps) {
 
       {isEditing && (
         <>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Exercises</h3>
+          <div className='flex items-center justify-between'>
+            <h3 className='text-lg font-semibold'>Exercises</h3>
             <Button
-              variant="outline"
-              size="sm"
+              variant='outline'
+              size='sm'
               onClick={() => setBrowserOpen(true)}
             >
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className='h-4 w-4 mr-1' />
               Add Exercise
             </Button>
           </div>
@@ -185,3 +189,4 @@ export default function WorkoutForm({ workout, weightUnit }: WorkoutFormProps) {
     </div>
   );
 }
+

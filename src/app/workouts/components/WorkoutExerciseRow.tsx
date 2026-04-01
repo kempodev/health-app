@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,20 +63,20 @@ export default function WorkoutExerciseRow({
         <Button
           size='icon'
           variant='ghost'
-          className='h-6 w-6'
+          className='h-8 w-8'
           disabled={isFirst}
           onClick={onMoveUp}
         >
-          <ChevronUp className='h-3 w-3' />
+          <ChevronUp className='h-4 w-4' />
         </Button>
         <Button
           size='icon'
           variant='ghost'
-          className='h-6 w-6'
+          className='h-8 w-8'
           disabled={isLast}
           onClick={onMoveDown}
         >
-          <ChevronDown className='h-3 w-3' />
+          <ChevronDown className='h-4 w-4' />
         </Button>
       </div>
 
@@ -94,7 +94,7 @@ export default function WorkoutExerciseRow({
 
       <div className='flex-1 min-w-0 space-y-2'>
         <div>
-          <p className='font-medium text-sm truncate'>
+          <p className='font-medium text-sm truncate mb-2'>
             {exercise.exercise_name}
           </p>
           <div className='flex flex-wrap gap-1 mt-0.5'>
@@ -106,7 +106,7 @@ export default function WorkoutExerciseRow({
           </div>
         </div>
 
-        <div className='grid grid-cols-4 gap-2'>
+        <div className='grid grid-cols-2 sm:grid-cols-4 gap-2'>
           <div>
             <Label className='text-xs text-muted-foreground'>Sets</Label>
             <Input
@@ -115,7 +115,7 @@ export default function WorkoutExerciseRow({
               value={sets}
               onChange={(e) => setSets(e.target.value)}
               onBlur={handleBlur}
-              className='h-8 text-sm'
+              className='h-10 text-base'
             />
           </div>
           <div>
@@ -126,7 +126,7 @@ export default function WorkoutExerciseRow({
               value={reps}
               onChange={(e) => setReps(e.target.value)}
               onBlur={handleBlur}
-              className='h-8 text-sm'
+              className='h-10 text-base'
             />
           </div>
           <div>
@@ -141,7 +141,7 @@ export default function WorkoutExerciseRow({
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               onBlur={handleBlur}
-              className='h-8 text-sm'
+              className='h-10 text-base'
             />
           </div>
           <div>
@@ -153,7 +153,7 @@ export default function WorkoutExerciseRow({
               value={rest}
               onChange={(e) => setRest(e.target.value)}
               onBlur={handleBlur}
-              className='h-8 text-sm'
+              className='h-10 text-base'
             />
           </div>
         </div>

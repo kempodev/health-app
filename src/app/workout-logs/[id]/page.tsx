@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { getUserPreferences } from '@/lib/actions';
+import { getWorkout } from '@/app/workouts/actions';
 import { getWorkoutLog } from '../actions';
 import WorkoutLogForm from '../components/WorkoutLogForm';
 import WorkoutLogDetail from '../components/WorkoutLogDetail';
@@ -36,6 +37,17 @@ export default async function WorkoutLogPage({ params }: Props) {
   const log = logResult.data!;
   const isActive = !log.completed_at;
 
+  // Build rest-seconds map from workout template
+  const restSecondsMap: Record<string, number> = {};
+  if (log.workout_id) {
+    const workoutResult = await getWorkout(log.workout_id);
+    if (workoutResult.success && workoutResult.data) {
+      for (const ex of workoutResult.data.exercises) {
+        restSecondsMap[ex.exercise_id] = ex.rest_seconds;
+      }
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -50,7 +62,7 @@ export default async function WorkoutLogPage({ params }: Props) {
       </div>
 
       {isActive ? (
-        <WorkoutLogForm log={log} weightUnit={weightUnit} />
+        <WorkoutLogForm log={log} weightUnit={weightUnit} restSecondsMap={restSecondsMap} />
       ) : (
         <WorkoutLogDetail log={log} weightUnit={weightUnit} />
       )}

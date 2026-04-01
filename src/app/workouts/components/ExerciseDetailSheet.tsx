@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { XIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,12 @@ export default function ExerciseDetailSheet({
   open,
   onOpenChange,
 }: ExerciseDetailSheetProps) {
+  const [frameIndex, setFrameIndex] = useState(0);
+
+  useEffect(() => {
+    setFrameIndex(0);
+  }, [exercise]);
+
   if (!exercise) return null;
 
   return (
@@ -45,22 +52,31 @@ export default function ExerciseDetailSheet({
         </SheetTitle>
 
         {exercise.images.length > 0 && (
-          <div className='grid grid-cols-2 gap-2 mt-4'>
+          <button
+            type='button'
+            className='relative aspect-square rounded-lg overflow-hidden mt-4 mx-auto w-full max-w-xs cursor-pointer'
+            onClick={() =>
+              setFrameIndex((prev) => (prev + 1) % exercise.images.length)
+            }
+          >
             {exercise.images.map((img, i) => (
-              <div
-                key={i}
-                className='relative aspect-square rounded-lg overflow-hidden'
-              >
-                <Image
-                  src={getExerciseImageUrl(img)}
-                  alt={`${exercise.name} - ${i === 0 ? 'start' : 'end'}`}
-                  fill
-                  className='object-cover'
-                  sizes='(max-width: 640px) 50vw, 250px'
-                />
-              </div>
+              <Image
+                key={img}
+                src={getExerciseImageUrl(img)}
+                alt={`${exercise.name} - frame ${i + 1}`}
+                fill
+                className={`object-cover transition-opacity duration-300 ${
+                  i === frameIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+                sizes='(max-width: 640px) 80vw, 320px'
+              />
             ))}
-          </div>
+            {exercise.images.length > 1 && (
+              <span className='absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full'>
+                {frameIndex + 1} / {exercise.images.length}
+              </span>
+            )}
+          </button>
         )}
 
         <div className='mt-4 space-y-3'>

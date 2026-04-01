@@ -20,11 +20,13 @@ import LogExerciseRow from './LogExerciseRow';
 type WorkoutLogFormProps = {
   log: WorkoutLogWithExercises;
   weightUnit: UnitType;
+  restSecondsMap: Record<string, number>;
 };
 
 export default function WorkoutLogForm({
   log,
   weightUnit,
+  restSecondsMap,
 }: WorkoutLogFormProps) {
   const router = useRouter();
   const [isCompleting, setIsCompleting] = React.useState(false);
@@ -129,6 +131,7 @@ export default function WorkoutLogForm({
             position={group.position}
             sets={group.sets}
             weightUnit={weightUnit}
+            restSeconds={restSecondsMap[group.exerciseId] ?? 0}
             onUpdateSet={handleUpdateSet}
             onRemoveSet={handleRemoveSet}
             onAddSet={handleAddSet}

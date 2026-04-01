@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { Plus } from 'lucide-react';
+import { Plus, Timer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getExerciseById, getExerciseImageUrl } from '@/lib/exercises';
-import type { UnitType } from '@/app/types';
+import type { Exercise, UnitType } from '@/app/types';
 import type { WorkoutLogExercise } from '../types';
+import ExerciseDetailSheet from '@/app/workouts/components/ExerciseDetailSheet';
 import LogSetRow from './LogSetRow';
 
 type LogExerciseRowProps = {
@@ -15,6 +16,7 @@ type LogExerciseRowProps = {
   position: number;
   sets: WorkoutLogExercise[];
   weightUnit: UnitType;
+  restSeconds: number;
   onUpdateSet: (
     id: string,
     reps: number,
@@ -30,13 +32,16 @@ export default function LogExerciseRow({
   position,
   sets,
   weightUnit,
+  restSeconds,
   onUpdateSet,
   onRemoveSet,
   onAddSet,
 }: LogExerciseRowProps) {
   const exercise = getExerciseById(exerciseId);
+  const [detailExercise, setDetailExercise] = React.useState<Exercise | null>(null);
 
   return (
+    <>
     <div className="rounded-lg border p-3 space-y-3">
       <div className="flex items-center gap-3">
         {exercise?.images[0] && (
@@ -51,15 +56,25 @@ export default function LogExerciseRow({
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">
+          <button
+            type="button"
+            className="font-medium text-sm truncate text-left hover:underline"
+            onClick={() => exercise && setDetailExercise(exercise)}
+          >
             {exercise?.name ?? exerciseId}
-          </p>
-          <div className="flex flex-wrap gap-1 mt-0.5">
+          </button>
+          <div className="flex flex-wrap items-center gap-1 mt-0.5">
             {exercise?.primaryMuscles.map((m) => (
               <Badge key={m} variant="secondary" className="text-xs">
                 {m}
               </Badge>
             ))}
+            {restSeconds > 0 && (
+              <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground ml-1">
+                <Timer className="h-3 w-3" />
+                {restSeconds}s
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -92,5 +107,13 @@ export default function LogExerciseRow({
         Add Set
       </Button>
     </div>
+    <ExerciseDetailSheet
+      exercise={detailExercise}
+      open={!!detailExercise}
+      onOpenChange={(open) => {
+        if (!open) setDetailExercise(null);
+      }}
+    />
+    </>
   );
 }

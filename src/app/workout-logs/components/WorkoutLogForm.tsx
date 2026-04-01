@@ -22,18 +22,28 @@ type WorkoutLogFormProps = {
   weightUnit: UnitType;
 };
 
-export default function WorkoutLogForm({ log, weightUnit }: WorkoutLogFormProps) {
+export default function WorkoutLogForm({
+  log,
+  weightUnit,
+}: WorkoutLogFormProps) {
   const router = useRouter();
   const [isCompleting, setIsCompleting] = React.useState(false);
   const [notes, setNotes] = React.useState(log.notes);
 
   // Group exercises by position
   const exerciseGroups = React.useMemo(() => {
-    const groups: Map<string, { exerciseId: string; position: number; sets: typeof log.exercises }> = new Map();
+    const groups: Map<
+      string,
+      { exerciseId: string; position: number; sets: typeof log.exercises }
+    > = new Map();
     for (const ex of log.exercises) {
       const key = `${ex.position}-${ex.exercise_id}`;
       if (!groups.has(key)) {
-        groups.set(key, { exerciseId: ex.exercise_id, position: ex.position, sets: [] });
+        groups.set(key, {
+          exerciseId: ex.exercise_id,
+          position: ex.position,
+          sets: [],
+        });
       }
       groups.get(key)!.sets.push(ex);
     }
@@ -44,9 +54,15 @@ export default function WorkoutLogForm({ log, weightUnit }: WorkoutLogFormProps)
     id: string,
     reps: number,
     weight: number | null,
-    completed: boolean
+    completed: boolean,
   ) => {
-    const result = await updateLogExerciseSet(id, reps, weight, weightUnit, completed);
+    const result = await updateLogExerciseSet(
+      id,
+      reps,
+      weight,
+      weightUnit,
+      completed,
+    );
     if (!result.success) toast.error(result.error);
   };
 
@@ -68,7 +84,7 @@ export default function WorkoutLogForm({ log, weightUnit }: WorkoutLogFormProps)
       lastSet?.weight_kg !== null && lastSet?.weight_kg !== undefined
         ? lastSet.weight_kg
         : null,
-      'kg' // stored in kg already
+      'kg', // stored in kg already
     );
     if (!result.success) toast.error(result.error);
   };
@@ -95,17 +111,17 @@ export default function WorkoutLogForm({ log, weightUnit }: WorkoutLogFormProps)
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className='space-y-4'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h2 className="text-xl font-bold">{log.name}</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className='text-xl font-bold'>{log.name}</h2>
+          <p className='text-sm text-muted-foreground'>
             Started {new Date(log.started_at).toLocaleString()}
           </p>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className='space-y-3'>
         {exerciseGroups.map((group) => (
           <LogExerciseRow
             key={`${group.position}-${group.exerciseId}`}
@@ -121,13 +137,15 @@ export default function WorkoutLogForm({ log, weightUnit }: WorkoutLogFormProps)
       </div>
 
       <div>
-        <Label htmlFor="notes">Notes</Label>
+        <Label htmlFor='notes' className='mb-2'>
+          Notes
+        </Label>
         <Textarea
-          id="notes"
+          id='notes'
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           onBlur={handleNotesBlur}
-          placeholder="How did it go?"
+          placeholder='How did it go?'
           rows={2}
         />
       </div>
@@ -135,11 +153,12 @@ export default function WorkoutLogForm({ log, weightUnit }: WorkoutLogFormProps)
       <Button
         onClick={handleComplete}
         disabled={isCompleting}
-        className="w-full"
-        size="lg"
+        className='w-full'
+        size='lg'
       >
         {isCompleting ? 'Completing...' : 'Complete Workout'}
       </Button>
     </div>
   );
 }
+

@@ -403,6 +403,17 @@ export async function reorderWorkoutExercises(
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
 
+    // Use negative positions first to avoid unique constraint conflicts
+    for (let i = 0; i < exerciseIds.length; i++) {
+      const { error } = await supabase
+        .from('workout_exercises')
+        .update({ position: -(i + 1) })
+        .eq('id', exerciseIds[i])
+        .eq('workout_id', workoutId);
+
+      if (error) throw error;
+    }
+
     for (let i = 0; i < exerciseIds.length; i++) {
       const { error } = await supabase
         .from('workout_exercises')

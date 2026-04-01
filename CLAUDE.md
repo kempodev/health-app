@@ -17,6 +17,8 @@ E2E tests live in `e2e/` and use Playwright. They require a `.env.test` file wit
 
 ## Architecture
 
+**Primary usage:** Mobile browser. Design all UI mobile-first — prioritize touch targets, vertical layouts, and compact views. Test responsiveness at small viewports before larger ones.
+
 **Stack:** Next.js 15 App Router · TypeScript (strict) · Supabase (PostgreSQL + Auth) · Tailwind CSS v4 + Radix UI (Shadcn components) · Recharts
 
 ### Key Design Decisions

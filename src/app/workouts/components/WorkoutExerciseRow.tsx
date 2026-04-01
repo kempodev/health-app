@@ -20,7 +20,7 @@ type WorkoutExerciseRowProps = {
     sets: number,
     reps: number,
     weight: number | null,
-    restSeconds: number
+    restSeconds: number,
   ) => void;
   onRemove: (id: string) => void;
   onMoveUp?: () => void;
@@ -58,116 +58,116 @@ export default function WorkoutExerciseRow({
   };
 
   return (
-    <div className="flex items-start gap-3 rounded-lg border p-3">
-      <div className="flex flex-col items-center gap-1 pt-1">
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
+    <div className='flex items-start gap-3 rounded-lg border p-3'>
+      <div className='flex flex-col items-center gap-1 pt-1'>
         <Button
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6"
+          size='icon'
+          variant='ghost'
+          className='h-6 w-6'
           disabled={isFirst}
           onClick={onMoveUp}
         >
-          <ChevronUp className="h-3 w-3" />
+          <ChevronUp className='h-3 w-3' />
         </Button>
         <Button
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6"
+          size='icon'
+          variant='ghost'
+          className='h-6 w-6'
           disabled={isLast}
           onClick={onMoveDown}
         >
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDown className='h-3 w-3' />
         </Button>
       </div>
 
       {exercise.exercise_images[0] && (
-        <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md">
+        <div className='relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md'>
           <Image
             src={getExerciseImageUrl(exercise.exercise_images[0])}
             alt={exercise.exercise_name}
             fill
-            className="object-cover"
-            sizes="56px"
+            className='object-cover'
+            sizes='56px'
           />
         </div>
       )}
 
-      <div className="flex-1 min-w-0 space-y-2">
+      <div className='flex-1 min-w-0 space-y-2'>
         <div>
-          <p className="font-medium text-sm truncate">
+          <p className='font-medium text-sm truncate'>
             {exercise.exercise_name}
           </p>
-          <div className="flex flex-wrap gap-1 mt-0.5">
+          <div className='flex flex-wrap gap-1 mt-0.5'>
             {exercise.primary_muscles.map((m) => (
-              <Badge key={m} variant="secondary" className="text-xs">
+              <Badge key={m} variant='secondary' className='text-xs'>
                 {m}
               </Badge>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className='grid grid-cols-4 gap-2'>
           <div>
-            <Label className="text-xs text-muted-foreground">Sets</Label>
+            <Label className='text-xs text-muted-foreground'>Sets</Label>
             <Input
-              type="number"
-              min="1"
+              type='number'
+              min='1'
               value={sets}
               onChange={(e) => setSets(e.target.value)}
               onBlur={handleBlur}
-              className="h-8 text-sm"
+              className='h-8 text-sm'
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Reps</Label>
+            <Label className='text-xs text-muted-foreground'>Reps</Label>
             <Input
-              type="number"
-              min="1"
+              type='number'
+              min='1'
               value={reps}
               onChange={(e) => setReps(e.target.value)}
               onBlur={handleBlur}
-              className="h-8 text-sm"
+              className='h-8 text-sm'
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">
+            <Label className='text-xs text-muted-foreground'>
               Weight ({weightUnit})
             </Label>
             <Input
-              type="number"
-              min="0"
-              step="0.5"
-              placeholder="BW"
+              type='number'
+              min='0'
+              step='0.5'
+              placeholder='BW'
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               onBlur={handleBlur}
-              className="h-8 text-sm"
+              className='h-8 text-sm'
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Rest (s)</Label>
+            <Label className='text-xs text-muted-foreground'>Rest (s)</Label>
             <Input
-              type="number"
-              min="0"
-              step="5"
+              type='number'
+              min='0'
+              step='5'
               value={rest}
               onChange={(e) => setRest(e.target.value)}
               onBlur={handleBlur}
-              className="h-8 text-sm"
+              className='h-8 text-sm'
             />
           </div>
         </div>
       </div>
 
       <Button
-        size="icon"
-        variant="ghost"
-        className="flex-shrink-0 text-destructive hover:text-destructive"
+        size='icon'
+        variant='ghost'
+        className='flex-shrink-0 text-destructive hover:text-destructive'
         onClick={() => onRemove(exercise.id)}
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className='h-4 w-4' />
       </Button>
     </div>
   );
 }
+

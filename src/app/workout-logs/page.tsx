@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { DAY_LABELS, DayOfWeek } from '@/app/types';
 import { getWorkoutLogs } from './actions';
 import { getActiveSchedule } from '@/app/schedules/actions';
-import { getWorkouts } from '@/app/workouts/actions';
 import WorkoutLogList from './components/WorkoutLogList';
 
 export default async function WorkoutLogsPage() {
@@ -16,10 +15,9 @@ export default async function WorkoutLogsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
 
-  const [logsResult, scheduleResult, workoutsResult] = await Promise.all([
+  const [logsResult, scheduleResult] = await Promise.all([
     getWorkoutLogs(),
     getActiveSchedule(),
-    getWorkouts(),
   ]);
 
   if (!logsResult.success) {
@@ -38,7 +36,15 @@ export default async function WorkoutLogsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Workout Log</h1>
 
-      {todaysEntries.length > 0 && (
+      {!scheduleResult.data ? (
+        <p className="text-sm text-muted-foreground">
+          No active schedule.{' '}
+          <Link href="/schedules" className="underline">
+            Create a schedule
+          </Link>{' '}
+          to start logging workouts.
+        </p>
+      ) : todaysEntries.length > 0 ? (
         <div className="rounded-lg border p-4 space-y-3">
           <h2 className="font-semibold text-sm text-muted-foreground">
             Today&apos;s Workouts ({DAY_LABELS[dayOfWeek]})
@@ -56,23 +62,10 @@ export default async function WorkoutLogsPage() {
             ))}
           </div>
         </div>
-      )}
-
-      {(workoutsResult.data?.length ?? 0) > 0 && (
-        <div className="rounded-lg border p-4 space-y-3">
-          <h2 className="font-semibold text-sm text-muted-foreground">
-            Start Any Workout
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {workoutsResult.data!.map((workout) => (
-              <Button key={workout.id} variant="ghost" size="sm" asChild>
-                <Link href={`/workout-logs/new?workoutId=${workout.id}`}>
-                  {workout.name}
-                </Link>
-              </Button>
-            ))}
-          </div>
-        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          No workouts scheduled for today ({DAY_LABELS[dayOfWeek]}).
+        </p>
       )}
 
       <h2 className="text-lg font-semibold">History</h2>

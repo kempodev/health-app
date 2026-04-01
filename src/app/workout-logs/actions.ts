@@ -82,6 +82,29 @@ export async function startWorkoutLog(
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
 
+    // Verify workout is in the active schedule
+    const { data: activeSchedule } = await supabase
+      .from('weekly_schedules')
+      .select('id')
+      .eq('is_active', true)
+      .single();
+
+    if (!activeSchedule) {
+      return { success: false, error: 'No active schedule' };
+    }
+
+    const { data: scheduleEntry } = await supabase
+      .from('schedule_entries')
+      .select('id')
+      .eq('schedule_id', activeSchedule.id)
+      .eq('workout_id', workoutId)
+      .limit(1)
+      .single();
+
+    if (!scheduleEntry) {
+      return { success: false, error: 'Workout is not in the active schedule' };
+    }
+
     // Get workout template
     const { data: workout, error: workoutError } = await supabase
       .from('workouts')

@@ -12,19 +12,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { deleteWorkout } from '../actions';
 
 type DeleteWorkoutDialogProps = {
   workoutId: string;
   workoutName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 };
 
 export default function DeleteWorkoutDialog({
   workoutId,
   workoutName,
+  open,
+  onOpenChange,
 }: DeleteWorkoutDialogProps) {
   const [isPending, setIsPending] = React.useState(false);
 
@@ -41,12 +43,7 @@ export default function DeleteWorkoutDialog({
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive">
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Workout</AlertDialogTitle>

@@ -22,7 +22,7 @@ export default function ExerciseCard({
     <div className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent/50 transition-colors">
       {exercise.images[0] && (
         <div
-          className="relative h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md"
+          className="relative h-16 w-16 shrink-0 cursor-pointer overflow-hidden rounded-md"
           onClick={() => onViewDetails?.(exercise)}
         >
           <Image
@@ -35,10 +35,10 @@ export default function ExerciseCard({
         </div>
       )}
       <div
-        className="flex-1 min-w-0 cursor-pointer"
+        className="min-w-0 flex-1 cursor-pointer overflow-hidden"
         onClick={() => onViewDetails?.(exercise)}
       >
-        <p className="font-medium text-sm truncate">{exercise.name}</p>
+        <p className="font-medium text-sm line-clamp-2">{exercise.name}</p>
         <div className="flex flex-wrap gap-1 mt-1">
           {exercise.primaryMuscles.map((m) => (
             <Badge key={m} variant="secondary" className="text-xs">
@@ -57,7 +57,7 @@ export default function ExerciseCard({
           size="icon"
           variant="ghost"
           onClick={() => onSelect(exercise)}
-          className="flex-shrink-0"
+          className="shrink-0"
         >
           <Plus className="h-4 w-4" />
         </Button>

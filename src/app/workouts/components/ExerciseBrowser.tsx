@@ -52,9 +52,9 @@ export default function ExerciseBrowser({
     () =>
       searchExercises({
         query: query || undefined,
-        muscle: muscle || undefined,
-        category: category || undefined,
-        equipment: equipment || undefined,
+        muscle: muscle && muscle !== 'all' ? muscle : undefined,
+        category: category && category !== 'all' ? category : undefined,
+        equipment: equipment && equipment !== 'all' ? equipment : undefined,
       }),
     [query, muscle, category, equipment]
   );
@@ -68,7 +68,7 @@ export default function ExerciseBrowser({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+        <DialogContent className="max-w-2xl h-[80vh] !flex flex-col p-0 overflow-hidden">
           <div className="p-4 pb-0 space-y-3">
             <DialogTitle>Add Exercise</DialogTitle>
             <div className="relative">
@@ -126,7 +126,7 @@ export default function ExerciseBrowser({
             </p>
           </div>
 
-          <ScrollArea className="flex-1 px-4 pb-4">
+          <ScrollArea className="flex-1 min-h-0 px-4 pb-4">
             <div className="space-y-2">
               {visibleResults.map((exercise) => (
                 <ExerciseCard

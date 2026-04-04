@@ -30,9 +30,9 @@ export default function StartWorkoutButton({
 
   return (
     <>
-      <Button variant={variant} onClick={() => setConfirmOpen(true)}>
-        <Play className="h-4 w-4 mr-1" />
-        {workoutName}
+      <Button variant={variant} className="max-w-full" onClick={() => setConfirmOpen(true)}>
+        <Play className="h-4 w-4 mr-1 shrink-0" />
+        <span className="truncate">{workoutName}</span>
       </Button>
       <ConfirmDialog
         title="Start Workout"

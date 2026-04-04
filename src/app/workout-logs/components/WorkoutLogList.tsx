@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ClipboardList, Trash2 } from 'lucide-react';
+import { CheckCircle, CircleDot, ClipboardList, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Table,
@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
 import type { WorkoutLog } from '../types';
@@ -49,7 +48,7 @@ export default function WorkoutLogList({ logs }: WorkoutLogListProps) {
           <TableHead>Date</TableHead>
           <TableHead>Workout</TableHead>
           <TableHead>Duration</TableHead>
-          <TableHead>Status</TableHead>
+          <TableHead className="w-5"></TableHead>
           <TableHead className="w-10"></TableHead>
         </TableRow>
       </TableHeader>
@@ -65,20 +64,20 @@ export default function WorkoutLogList({ logs }: WorkoutLogListProps) {
               <TableCell className="text-sm">
                 {new Date(log.started_at).toLocaleDateString()}
               </TableCell>
-              <TableCell>
+              <TableCell className="max-w-[120px]">
                 <Link
                   href={`/workout-logs/${log.id}`}
-                  className="text-sm font-medium hover:underline"
+                  className="text-sm font-medium hover:underline truncate block"
                 >
                   {log.name}
                 </Link>
               </TableCell>
               <TableCell className="text-sm">{duration}</TableCell>
-              <TableCell>
+              <TableCell className="pr-0">
                 {log.completed_at ? (
-                  <Badge variant="default" className="text-xs">Completed</Badge>
+                  <CheckCircle className="h-4 w-4 text-primary" />
                 ) : (
-                  <Badge variant="secondary" className="text-xs">In Progress</Badge>
+                  <CircleDot className="h-4 w-4 text-muted-foreground" />
                 )}
               </TableCell>
               <TableCell>

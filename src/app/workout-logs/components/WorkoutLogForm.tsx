@@ -16,6 +16,7 @@ import {
   updateWorkoutLogNotes,
 } from '../actions';
 import LogExerciseRow from './LogExerciseRow';
+import RestTimer from './RestTimer';
 
 type WorkoutLogFormProps = {
   log: WorkoutLogWithExercises;
@@ -32,6 +33,7 @@ export default function WorkoutLogForm({
   const [isCompleting, setIsCompleting] = React.useState(false);
   const [notes, setNotes] = React.useState(log.notes);
   const [optimisticExercises, setOptimisticExercises] = React.useState(log.exercises);
+  const [restTimerSeconds, setRestTimerSeconds] = React.useState<number | null>(null);
 
   // Sync with server data when it updates
   React.useEffect(() => {
@@ -64,6 +66,15 @@ export default function WorkoutLogForm({
     weight: number | null,
     completed: boolean,
   ) => {
+    // Start rest timer when checking a set as done
+    if (completed) {
+      const set = optimisticExercises.find((e) => e.id === id);
+      if (set) {
+        const rest = restSecondsMap[set.exercise_id] ?? 0;
+        if (rest > 0) setRestTimerSeconds(rest);
+      }
+    }
+
     const result = await updateLogExerciseSet(
       id,
       reps,
@@ -153,6 +164,13 @@ export default function WorkoutLogForm({
   };
 
   return (
+    <>
+    {restTimerSeconds !== null && (
+      <RestTimer
+        seconds={restTimerSeconds}
+        onDone={() => setRestTimerSeconds(null)}
+      />
+    )}
     <div className='space-y-4'>
       <div className='flex items-center justify-between'>
         <div>
@@ -202,6 +220,7 @@ export default function WorkoutLogForm({
         {isCompleting ? 'Completing...' : 'Complete Workout'}
       </Button>
     </div>
+    </>
   );
 }
 

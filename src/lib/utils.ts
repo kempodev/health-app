@@ -38,7 +38,7 @@ export function convertFromBaseUnit(
       result = targetUnit === 'inches' ? value / 2.54 : value;
       break;
   }
-  return Math.round(result * 100) / 100;
+  return Math.round(result * 10) / 10;
 }
 
 export function getMetricDisplayName(metricType: MetricType): string {

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import type { UnitType } from '@/app/types';
@@ -34,6 +35,54 @@ export default function WorkoutLogForm({
   const [notes, setNotes] = React.useState(log.notes);
   const [optimisticExercises, setOptimisticExercises] = React.useState(log.exercises);
   const [restTimerSeconds, setRestTimerSeconds] = React.useState<number | null>(null);
+  const [wakeLock, setWakeLock] = React.useState<WakeLockSentinel | null>(null);
+  const [wakeLockSupported, setWakeLockSupported] = React.useState(false);
+
+  React.useEffect(() => {
+    setWakeLockSupported('wakeLock' in navigator);
+  }, []);
+
+  // Release wake lock on unmount
+  React.useEffect(() => {
+    return () => {
+      wakeLock?.release();
+    };
+  }, [wakeLock]);
+
+  // Re-acquire wake lock when page becomes visible again (browser releases it on tab switch)
+  React.useEffect(() => {
+    if (!wakeLock) return;
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible' && wakeLock.released) {
+        try {
+          const newLock = await navigator.wakeLock.request('screen');
+          setWakeLock(newLock);
+        } catch {
+          // Silently fail
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [wakeLock]);
+
+  const toggleWakeLock = async () => {
+    if (wakeLock) {
+      await wakeLock.release();
+      setWakeLock(null);
+      toast.success('Screen lock enabled');
+    } else {
+      try {
+        const lock = await navigator.wakeLock.request('screen');
+        setWakeLock(lock);
+        toast.success('Screen will stay on');
+      } catch {
+        toast.error('Could not keep screen on');
+      }
+    }
+  };
 
   // Sync with server data when it updates
   React.useEffect(() => {
@@ -180,6 +229,19 @@ export default function WorkoutLogForm({
           </p>
         </div>
       </div>
+
+      {wakeLockSupported && (
+        <div className='flex items-center justify-between rounded-lg border p-3'>
+          <Label htmlFor='wake-lock' className='text-sm'>
+            Keep screen on
+          </Label>
+          <Switch
+            id='wake-lock'
+            checked={!!wakeLock}
+            onCheckedChange={toggleWakeLock}
+          />
+        </div>
+      )}
 
       <div className='space-y-3'>
         {exerciseGroups.map((group) => (

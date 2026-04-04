@@ -1,9 +1,22 @@
 import { test, expect } from '../fixtures/test-fixtures';
 import {
   cleanupTestData,
+  seedSchedule,
+  seedScheduleEntry,
   seedWorkout,
   seedWorkoutExercise,
 } from '../helpers/supabase-admin';
+
+// Get today's day_of_week in our format (0=Mon)
+function getTodayDayOfWeek(): number {
+  const jsDay = new Date().getDay();
+  return jsDay === 0 ? 6 : jsDay - 1;
+}
+
+// Get a day_of_week that is NOT today
+function getOtherDayOfWeek(): number {
+  return (getTodayDayOfWeek() + 1) % 7;
+}
 
 test.describe('Workout Logs', () => {
   test.afterEach(async ({ testUserId }) => {
@@ -16,11 +29,18 @@ test.describe('Workout Logs', () => {
   });
 
   test('shows available workouts to start', async ({ page, testUserId }) => {
-    await seedWorkout(testUserId, { name: 'Push Day' });
+    const workout = await seedWorkout(testUserId, { name: 'Push Day' });
+    const schedule = await seedSchedule(testUserId, { is_active: true });
+    await seedScheduleEntry(schedule.id, workout.id, {
+      day_of_week: getOtherDayOfWeek(),
+    });
+
     await page.goto('/workout-logs');
 
-    await expect(page.getByText('Start Any Workout')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Push Day' })).toBeVisible();
+    await expect(page.getByText('Other Workouts')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Push Day' })
+    ).toBeVisible();
   });
 
   test('can start a workout and see exercises', async ({
@@ -35,9 +55,18 @@ test.describe('Workout Logs', () => {
       reps: 10,
       weight_kg: 60,
     });
+    const schedule = await seedSchedule(testUserId, { is_active: true });
+    await seedScheduleEntry(schedule.id, workout.id, {
+      day_of_week: getTodayDayOfWeek(),
+    });
 
     await page.goto('/workout-logs');
-    await page.getByRole('link', { name: 'Bench Session' }).click();
+    await page.getByRole('button', { name: 'Bench Session' }).click();
+    // Confirm the start dialog
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Start' })
+      .click();
 
     // Should redirect to active workout page
     await expect(
@@ -59,9 +88,18 @@ test.describe('Workout Logs', () => {
       sets: 1,
       reps: 5,
     });
+    const schedule = await seedSchedule(testUserId, { is_active: true });
+    await seedScheduleEntry(schedule.id, workout.id, {
+      day_of_week: getTodayDayOfWeek(),
+    });
 
     await page.goto('/workout-logs');
-    await page.getByRole('link', { name: 'Quick Workout' }).click();
+    await page.getByRole('button', { name: 'Quick Workout' }).click();
+    // Confirm the start dialog
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Start' })
+      .click();
 
     await expect(
       page.getByRole('heading', { name: 'Active Workout' })

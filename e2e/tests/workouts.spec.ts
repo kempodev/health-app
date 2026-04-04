@@ -24,7 +24,7 @@ test.describe('Workouts', () => {
     await expect(page.getByText('Workout created')).toBeVisible();
     // Should redirect to edit page with exercises section
     await expect(
-      page.getByRole('heading', { name: 'Exercises' })
+      page.getByRole('heading', { name: /^Exercises/ })
     ).toBeVisible();
   });
 
@@ -68,11 +68,9 @@ test.describe('Workouts', () => {
     await seedWorkout(testUserId, { name: 'Delete Me' });
     await page.goto('/workouts');
 
-    // Click the trash icon button (inside the card footer)
-    await page
-      .locator('button.text-destructive')
-      .first()
-      .click();
+    // Open the dropdown menu first
+    await page.getByRole('button', { name: 'More actions' }).first().click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
     // Confirm in the alert dialog
     await page
       .getByRole('alertdialog')
@@ -86,7 +84,9 @@ test.describe('Workouts', () => {
     await seedWorkout(testUserId, { name: 'Original' });
     await page.goto('/workouts');
 
-    await page.getByTitle('Duplicate').click();
+    // Open the dropdown menu first
+    await page.getByRole('button', { name: 'More actions' }).first().click();
+    await page.getByRole('menuitem', { name: 'Duplicate' }).click();
     await expect(page.getByText('Duplicated "Original"')).toBeVisible();
     await expect(page.getByText('Original (Copy)')).toBeVisible();
   });

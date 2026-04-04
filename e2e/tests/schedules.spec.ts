@@ -28,7 +28,9 @@ test.describe('Schedules', () => {
     await seedSchedule(testUserId, { name: 'My Plan' });
     await page.goto('/schedules');
 
-    await page.getByRole('button', { name: 'Set Active' }).click();
+    // Open the dropdown menu first
+    await page.getByRole('button', { name: 'More actions' }).first().click();
+    await page.getByRole('menuitem', { name: 'Set Active' }).click();
     await expect(page.getByText('"My Plan" is now active')).toBeVisible();
   });
 
@@ -57,11 +59,9 @@ test.describe('Schedules', () => {
     await seedSchedule(testUserId, { name: 'Old Plan' });
     await page.goto('/schedules');
 
-    // Click the trash icon button
-    await page
-      .locator('button.text-destructive')
-      .first()
-      .click();
+    // Open the dropdown menu first
+    await page.getByRole('button', { name: 'More actions' }).first().click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
     // Confirm in the alert dialog
     await page
       .getByRole('alertdialog')

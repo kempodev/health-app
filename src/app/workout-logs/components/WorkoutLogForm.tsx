@@ -35,6 +35,7 @@ export default function WorkoutLogForm({
   const [notes, setNotes] = React.useState(log.notes);
   const [optimisticExercises, setOptimisticExercises] = React.useState(log.exercises);
   const [restTimerSeconds, setRestTimerSeconds] = React.useState<number | null>(null);
+  const [expandedKey, setExpandedKey] = React.useState<string | null>(null);
   const [wakeLock, setWakeLock] = React.useState<WakeLockSentinel | null>(null);
   const [wakeLockSupported, setWakeLockSupported] = React.useState(false);
 
@@ -109,18 +110,55 @@ export default function WorkoutLogForm({
     return Array.from(groups.values()).sort((a, b) => a.position - b.position);
   }, [optimisticExercises]);
 
+  // Auto-expand first exercise with uncompleted sets
+  const autoExpandKey = React.useMemo(() => {
+    for (const group of exerciseGroups) {
+      if (group.sets.some((s) => !s.completed)) {
+        return `${group.position}-${group.exerciseId}`;
+      }
+    }
+    return null;
+  }, [exerciseGroups]);
+
+  // expandedKey: null = use auto, 'none' = all collapsed, string = specific exercise
+  const activeKey = React.useMemo(() => {
+    if (expandedKey === 'none') return null;
+    if (expandedKey) return expandedKey;
+    return autoExpandKey;
+  }, [expandedKey, autoExpandKey]);
+
   const handleUpdateSet = async (
     id: string,
     reps: number,
     weight: number | null,
     completed: boolean,
   ) => {
+    // Optimistically update the set
+    setOptimisticExercises((prev) =>
+      prev.map((e) =>
+        e.id === id ? { ...e, reps, weight_kg: weight, completed } : e,
+      ),
+    );
+
     // Start rest timer when checking a set as done
     if (completed) {
       const set = optimisticExercises.find((e) => e.id === id);
       if (set) {
         const rest = restSecondsMap[set.exercise_id] ?? 0;
         if (rest > 0) setRestTimerSeconds(rest);
+
+        // Check if all sets for this exercise are now completed
+        const siblingsSets = optimisticExercises.filter(
+          (e) =>
+            e.exercise_id === set.exercise_id && e.position === set.position,
+        );
+        const allDone = siblingsSets.every((s) =>
+          s.id === id ? true : s.completed,
+        );
+        if (allDone) {
+          // Reset to auto-expand so the next exercise opens
+          setExpandedKey(null);
+        }
       }
     }
 
@@ -244,19 +282,26 @@ export default function WorkoutLogForm({
       )}
 
       <div className='space-y-3'>
-        {exerciseGroups.map((group) => (
-          <LogExerciseRow
-            key={`${group.position}-${group.exerciseId}`}
-            exerciseId={group.exerciseId}
-            position={group.position}
-            sets={group.sets}
-            weightUnit={weightUnit}
-            restSeconds={restSecondsMap[group.exerciseId] ?? 0}
-            onUpdateSet={handleUpdateSet}
-            onRemoveSet={handleRemoveSet}
-            onAddSet={handleAddSet}
-          />
-        ))}
+        {exerciseGroups.map((group) => {
+          const key = `${group.position}-${group.exerciseId}`;
+          return (
+            <LogExerciseRow
+              key={key}
+              exerciseId={group.exerciseId}
+              position={group.position}
+              sets={group.sets}
+              weightUnit={weightUnit}
+              restSeconds={restSecondsMap[group.exerciseId] ?? 0}
+              expanded={activeKey === key}
+              onToggle={() =>
+                setExpandedKey(activeKey === key ? 'none' : key)
+              }
+              onUpdateSet={handleUpdateSet}
+              onRemoveSet={handleRemoveSet}
+              onAddSet={handleAddSet}
+            />
+          );
+        })}
       </div>
 
       <div>

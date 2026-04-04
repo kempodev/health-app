@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { Minus, Plus, Timer } from 'lucide-react';
+import { ChevronDown, ChevronRight, Info, Minus, Plus, Timer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getExerciseById, getExerciseImageUrl } from '@/lib/exercises';
@@ -25,6 +25,8 @@ type LogExerciseRowProps = {
   ) => void;
   onRemoveSet: (id: string) => void;
   onAddSet: (exerciseId: string, position: number) => void;
+  expanded: boolean;
+  onToggle: () => void;
 };
 
 export default function LogExerciseRow({
@@ -36,90 +38,121 @@ export default function LogExerciseRow({
   onUpdateSet,
   onRemoveSet,
   onAddSet,
+  expanded,
+  onToggle,
 }: LogExerciseRowProps) {
   const exercise = getExerciseById(exerciseId);
   const [detailExercise, setDetailExercise] = React.useState<Exercise | null>(
     null,
   );
 
+  const completedCount = sets.filter((s) => s.completed).length;
+  const allCompleted = completedCount === sets.length;
+
   return (
     <>
       <div className='rounded-lg border p-3 space-y-3'>
         <div className='flex items-center gap-3'>
-          {exercise?.images[0] && (
-            <div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md'>
-              <Image
-                src={getExerciseImageUrl(exercise.images[0])}
-                alt={exercise.name}
-                fill
-                className='object-cover'
-                sizes='40px'
-              />
+          <button
+            type='button'
+            className='flex items-center gap-3 flex-1 min-w-0 text-left'
+            onClick={onToggle}
+          >
+            {expanded ? (
+              <ChevronDown className='h-4 w-4 shrink-0 text-muted-foreground' />
+            ) : (
+              <ChevronRight className='h-4 w-4 shrink-0 text-muted-foreground' />
+            )}
+            {exercise?.images[0] && (
+              <div className='relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md'>
+                <Image
+                  src={getExerciseImageUrl(exercise.images[0])}
+                  alt={exercise.name}
+                  fill
+                  className='object-cover'
+                  sizes='40px'
+                />
+              </div>
+            )}
+            <div className='flex-1 min-w-0'>
+              <span className='font-medium text-sm truncate block'>
+                {exercise?.name ?? exerciseId}
+              </span>
+              <div className='flex flex-wrap items-center gap-1 mt-0.5'>
+                {!expanded && (
+                  <span className='text-xs text-muted-foreground'>
+                    {completedCount}/{sets.length} sets
+                    {allCompleted && ' \u2713'}
+                  </span>
+                )}
+                {expanded && exercise?.primaryMuscles.map((m) => (
+                  <Badge key={m} variant='secondary' className='text-xs'>
+                    {m}
+                  </Badge>
+                ))}
+                {expanded && restSeconds > 0 && (
+                  <span className='inline-flex items-center gap-0.5 text-xs text-muted-foreground ml-1'>
+                    <Timer className='h-3 w-3' />
+                    {restSeconds}s
+                  </span>
+                )}
+              </div>
             </div>
-          )}
-          <div className='flex-1 min-w-0'>
+          </button>
+          {expanded && exercise && (
             <button
               type='button'
-              className='font-medium text-sm truncate text-left hover:underline'
-              onClick={() => exercise && setDetailExercise(exercise)}
+              className='shrink-0 p-2 text-muted-foreground hover:text-foreground'
+              onClick={() => setDetailExercise(exercise)}
             >
-              {exercise?.name ?? exerciseId}
+              <Info className='h-4 w-4' />
             </button>
-            <div className='flex flex-wrap items-center gap-1 mt-0.5'>
-              {exercise?.primaryMuscles.map((m) => (
-                <Badge key={m} variant='secondary' className='text-xs'>
-                  {m}
-                </Badge>
-              ))}
-              {restSeconds > 0 && (
-                <span className='inline-flex items-center gap-0.5 text-xs text-muted-foreground ml-1'>
-                  <Timer className='h-3 w-3' />
-                  {restSeconds}s
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className='space-y-1.5'>
-          <div className='flex items-center gap-2 text-xs text-muted-foreground px-1'>
-            <span className='w-7 text-center'>Set</span>
-            <span className='flex-1'>Reps</span>
-            <span className='flex-1'>Weight</span>
-            <span className='w-6 text-center'>Done</span>
-          </div>
-          {sets.map((set) => (
-            <LogSetRow
-              key={set.id}
-              set={set}
-              weightUnit={weightUnit}
-              onUpdate={onUpdateSet}
-            />
-          ))}
-        </div>
-
-        <div className='flex justify-between'>
-          <Button
-            variant='ghost'
-            size='default'
-            className='text-sm'
-            onClick={() => onAddSet(exerciseId, position)}
-          >
-            <Plus className='h-4 w-4 mr-1' />
-            Add Set
-          </Button>
-          {sets.length > 1 && (
-            <Button
-              variant='ghost'
-              size='default'
-              className='text-sm text-destructive hover:text-destructive'
-              onClick={() => onRemoveSet(sets[sets.length - 1].id)}
-            >
-              <Minus className='h-4 w-4 mr-1' />
-              Remove Set
-            </Button>
           )}
         </div>
+
+        {expanded && (
+          <>
+            <div className='space-y-1.5'>
+              <div className='flex items-center gap-2 text-xs text-muted-foreground px-1'>
+                <span className='w-7 text-center'>Set</span>
+                <span className='flex-1'>Reps</span>
+                <span className='flex-1'>Weight</span>
+                <span className='w-6 text-center'>Done</span>
+              </div>
+              {sets.map((set) => (
+                <LogSetRow
+                  key={set.id}
+                  set={set}
+                  weightUnit={weightUnit}
+                  onUpdate={onUpdateSet}
+                />
+              ))}
+            </div>
+
+            <div className='flex justify-between'>
+              <Button
+                variant='ghost'
+                size='default'
+                className='text-sm'
+                onClick={() => onAddSet(exerciseId, position)}
+              >
+                <Plus className='h-4 w-4 mr-1' />
+                Add Set
+              </Button>
+              {sets.length > 1 && (
+                <Button
+                  variant='ghost'
+                  size='default'
+                  className='text-sm text-destructive hover:text-destructive'
+                  onClick={() => onRemoveSet(sets[sets.length - 1].id)}
+                >
+                  <Minus className='h-4 w-4 mr-1' />
+                  Remove Set
+                </Button>
+              )}
+            </div>
+          </>
+        )}
       </div>
       <ExerciseDetailSheet
         exercise={detailExercise}

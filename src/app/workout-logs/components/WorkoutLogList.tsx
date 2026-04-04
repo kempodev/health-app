@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { ClipboardList, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import type { WorkoutLog } from '../types';
 import { deleteWorkoutLog } from '../actions';
 
@@ -21,6 +23,8 @@ type WorkoutLogListProps = {
 };
 
 export default function WorkoutLogList({ logs }: WorkoutLogListProps) {
+  const [deleteLog, setDeleteLog] = React.useState<WorkoutLog | null>(null);
+
   if (logs.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
@@ -30,13 +34,15 @@ export default function WorkoutLogList({ logs }: WorkoutLogListProps) {
     );
   }
 
-  const handleDelete = async (id: string) => {
-    const result = await deleteWorkoutLog(id);
+  const handleDelete = async () => {
+    if (!deleteLog) return;
+    const result = await deleteWorkoutLog(deleteLog.id);
     if (!result.success) toast.error(result.error);
     else toast.success('Log deleted');
   };
 
   return (
+    <>
     <Table>
       <TableHeader>
         <TableRow>
@@ -80,7 +86,7 @@ export default function WorkoutLogList({ logs }: WorkoutLogListProps) {
                   size="icon"
                   variant="ghost"
                   className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => handleDelete(log.id)}
+                  onClick={() => setDeleteLog(log)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -90,5 +96,13 @@ export default function WorkoutLogList({ logs }: WorkoutLogListProps) {
         })}
       </TableBody>
     </Table>
+    <ConfirmDialog
+      title='Delete Workout Log'
+      description={`Delete the log for "${deleteLog?.name}"? This action cannot be undone.`}
+      open={!!deleteLog}
+      onOpenChange={(open) => { if (!open) setDeleteLog(null); }}
+      onConfirm={handleDelete}
+    />
+    </>
   );
 }

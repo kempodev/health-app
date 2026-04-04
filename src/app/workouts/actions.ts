@@ -32,11 +32,16 @@ export async function getWorkouts(): Promise<ActionResult<Workout[]>> {
 
     const { data, error } = await supabase
       .from('workouts')
-      .select('*')
+      .select('*, workout_exercises(count)')
       .order('updated_at', { ascending: false });
 
     if (error) throw error;
-    return { success: true, data: data as Workout[] };
+    const workouts = (data ?? []).map((w) => ({
+      ...w,
+      exercise_count: w.workout_exercises?.[0]?.count ?? 0,
+      workout_exercises: undefined,
+    })) as Workout[];
+    return { success: true, data: workouts };
   } catch (e) {
     console.error('Error fetching workouts:', e);
     return { success: false, error: 'Failed to fetch workouts' };

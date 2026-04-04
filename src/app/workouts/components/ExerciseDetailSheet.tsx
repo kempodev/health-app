@@ -54,7 +54,7 @@ export default function ExerciseDetailSheet({
         {exercise.images.length > 0 && (
           <button
             type='button'
-            className='relative aspect-square rounded-lg overflow-hidden mt-4 mx-auto w-full max-w-xs cursor-pointer'
+            className='relative aspect-square rounded-lg overflow-hidden mt-4 mx-auto w-full max-w-xs cursor-pointer shrink-0'
             onClick={() =>
               setFrameIndex((prev) => (prev + 1) % exercise.images.length)
             }

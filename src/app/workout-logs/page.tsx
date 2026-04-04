@@ -1,12 +1,11 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Play } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import { Button } from '@/components/ui/button';
 import { DAY_LABELS, DayOfWeek } from '@/app/types';
 import { getWorkoutLogs } from './actions';
 import { getActiveSchedule } from '@/app/schedules/actions';
 import WorkoutLogList from './components/WorkoutLogList';
+import StartWorkoutButton from './components/StartWorkoutButton';
 
 export default async function WorkoutLogsPage() {
   const supabase = await createClient();
@@ -32,6 +31,14 @@ export default async function WorkoutLogsPage() {
     scheduleResult.data?.entries.filter((e) => e.day_of_week === dayOfWeek) ??
     [];
 
+  // Get unique workouts from the schedule that aren't in today's entries
+  const todaysWorkoutIds = new Set(todaysEntries.map((e) => e.workout_id));
+  const otherEntries = scheduleResult.data?.entries
+    .filter((e) => !todaysWorkoutIds.has(e.workout_id))
+    .filter(
+      (e, i, arr) => arr.findIndex((a) => a.workout_id === e.workout_id) === i,
+    ) ?? [];
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Workout Log</h1>
@@ -44,28 +51,47 @@ export default async function WorkoutLogsPage() {
           </Link>{' '}
           to start logging workouts.
         </p>
-      ) : todaysEntries.length > 0 ? (
-        <div className="rounded-lg border p-4 space-y-3">
-          <h2 className="font-semibold text-sm text-muted-foreground">
-            Today&apos;s Workouts ({DAY_LABELS[dayOfWeek]})
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {todaysEntries.map((entry) => (
-              <Button key={entry.id} variant="outline" asChild>
-                <Link
-                  href={`/workout-logs/new?workoutId=${entry.workout_id}&scheduleEntryId=${entry.id}`}
-                >
-                  <Play className="h-4 w-4 mr-1" />
-                  {entry.workout.name}
-                </Link>
-              </Button>
-            ))}
-          </div>
-        </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          No workouts scheduled for today ({DAY_LABELS[dayOfWeek]}).
-        </p>
+        <div className="rounded-lg border p-4 space-y-3">
+          {todaysEntries.length > 0 ? (
+            <>
+              <h2 className="font-semibold text-sm text-muted-foreground">
+                Today&apos;s Workouts ({DAY_LABELS[dayOfWeek]})
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {todaysEntries.map((entry) => (
+                  <StartWorkoutButton
+                    key={entry.id}
+                    workoutId={entry.workout_id}
+                    workoutName={entry.workout.name}
+                    scheduleEntryId={entry.id}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No workouts scheduled for today ({DAY_LABELS[dayOfWeek]}).
+            </p>
+          )}
+          {otherEntries.length > 0 && (
+            <>
+              <h2 className="font-semibold text-sm text-muted-foreground">
+                Other Workouts
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {otherEntries.map((entry) => (
+                  <StartWorkoutButton
+                    key={entry.id}
+                    workoutId={entry.workout_id}
+                    workoutName={entry.workout.name}
+                    variant="ghost"
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       <h2 className="text-lg font-semibold">History</h2>

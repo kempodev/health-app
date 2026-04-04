@@ -74,7 +74,7 @@ function WorkoutCard({
                 <MoreVertical className='h-4 w-4' />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
+            <DropdownMenuContent align='end' sideOffset={16}>
               <DropdownMenuItem asChild>
                 <Link href={`/workouts/${workout.id}`}>
                   <Pencil className='h-4 w-4 mr-2' />
@@ -105,7 +105,9 @@ function WorkoutCard({
           </p>
         )}
         <p className='text-xs text-muted-foreground mt-1'>
-          Updated {new Date(workout.updated_at).toLocaleDateString()}
+          {workout.exercise_count ?? 0} exercise
+          {workout.exercise_count !== 1 ? 's' : ''} &middot; Updated{' '}
+          {new Date(workout.updated_at).toLocaleDateString()}
         </p>
       </CardContent>
       <DeleteWorkoutDialog

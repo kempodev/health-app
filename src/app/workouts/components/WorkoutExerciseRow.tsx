@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import { getExerciseImageUrl } from '@/lib/exercises';
 import { convertFromBaseUnit } from '@/lib/utils';
 import type { UnitType } from '@/app/types';
@@ -39,6 +40,8 @@ export default function WorkoutExerciseRow({
   isFirst,
   isLast,
 }: WorkoutExerciseRowProps) {
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+
   const displayWeight =
     exercise.weight_kg !== null
       ? convertFromBaseUnit(exercise.weight_kg, weightUnit, 'weight')
@@ -163,10 +166,19 @@ export default function WorkoutExerciseRow({
         size='icon'
         variant='ghost'
         className='flex-shrink-0 text-destructive hover:text-destructive'
-        onClick={() => onRemove(exercise.id)}
+        onClick={() => setConfirmOpen(true)}
       >
         <Trash2 className='h-4 w-4' />
       </Button>
+      <ConfirmDialog
+        title='Remove Exercise'
+        description={`Remove "${exercise.exercise_name}" from this workout?`}
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={() => onRemove(exercise.id)}
+        confirmLabel='Remove'
+        pendingLabel='Removing...'
+      />
     </div>
   );
 }

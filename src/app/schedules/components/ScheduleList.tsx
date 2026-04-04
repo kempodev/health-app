@@ -2,7 +2,13 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { CalendarDays, Check, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import {
+  CalendarDays,
+  Check,
+  MoreVertical,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -63,15 +69,11 @@ function ScheduleCard({
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
   return (
-    <Card
-      className={schedule.is_active ? 'border-primary' : ''}
-    >
+    <Card className={schedule.is_active ? 'border-primary' : ''}>
       <CardHeader className='pb-2'>
         <div className='flex items-start justify-between gap-2'>
           <div className='flex items-center gap-2'>
-            <CardTitle className='text-base'>
-              {schedule.name}
-            </CardTitle>
+            <CardTitle className='text-base'>{schedule.name}</CardTitle>
             {schedule.is_active && (
               <Badge variant='default' className='text-xs'>
                 Active
@@ -84,7 +86,7 @@ function ScheduleCard({
                 <MoreVertical className='h-4 w-4' />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
+            <DropdownMenuContent align='end' sideOffset={16}>
               <DropdownMenuItem asChild>
                 <Link href={`/schedules/${schedule.id}`}>
                   <Pencil className='h-4 w-4 mr-2' />

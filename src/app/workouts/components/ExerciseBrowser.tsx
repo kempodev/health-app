@@ -64,7 +64,7 @@ export default function ExerciseBrowser({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className='max-w-2xl h-[80vh] !flex flex-col p-0 overflow-hidden'>
+        <DialogContent className='max-w-2xl h-[80vh] !flex flex-col p-0 overflow-hidden' onOpenAutoFocus={(e) => e.preventDefault()}>
           <div className='p-4 pb-0 space-y-3'>
             <DialogTitle>Add Exercise</DialogTitle>
             <div className='relative'>

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import type { UnitType } from '@/app/types';
-import type { WorkoutLogWithExercises } from '../types';
+import type { WorkoutLogExercise, WorkoutLogWithExercises } from '../types';
 import {
   updateLogExerciseSet,
   addLogExerciseSet,
@@ -31,14 +31,20 @@ export default function WorkoutLogForm({
   const router = useRouter();
   const [isCompleting, setIsCompleting] = React.useState(false);
   const [notes, setNotes] = React.useState(log.notes);
+  const [optimisticExercises, setOptimisticExercises] = React.useState(log.exercises);
+
+  // Sync with server data when it updates
+  React.useEffect(() => {
+    setOptimisticExercises(log.exercises);
+  }, [log.exercises]);
 
   // Group exercises by position
   const exerciseGroups = React.useMemo(() => {
     const groups: Map<
       string,
-      { exerciseId: string; position: number; sets: typeof log.exercises }
+      { exerciseId: string; position: number; sets: WorkoutLogExercise[] }
     > = new Map();
-    for (const ex of log.exercises) {
+    for (const ex of optimisticExercises) {
       const key = `${ex.position}-${ex.exercise_id}`;
       if (!groups.has(key)) {
         groups.set(key, {
@@ -50,7 +56,7 @@ export default function WorkoutLogForm({
       groups.get(key)!.sets.push(ex);
     }
     return Array.from(groups.values()).sort((a, b) => a.position - b.position);
-  }, [log]);
+  }, [optimisticExercises]);
 
   const handleUpdateSet = async (
     id: string,
@@ -69,26 +75,60 @@ export default function WorkoutLogForm({
   };
 
   const handleRemoveSet = async (id: string) => {
+    // Optimistically remove
+    setOptimisticExercises((prev) => prev.filter((e) => e.id !== id));
+
     const result = await removeLogExerciseSet(id, log.id);
-    if (!result.success) toast.error(result.error);
+    if (!result.success) {
+      toast.error(result.error);
+      // Revert on failure
+      setOptimisticExercises(log.exercises);
+    }
   };
 
   const handleAddSet = async (exerciseId: string, position: number) => {
-    const lastSet = log.exercises
+    const setsForExercise = optimisticExercises
       .filter((e) => e.exercise_id === exerciseId && e.position === position)
-      .sort((a, b) => b.set_number - a.set_number)[0];
+      .sort((a, b) => b.set_number - a.set_number);
+    const lastSet = setsForExercise[0];
+    const nextSetNumber = lastSet ? lastSet.set_number + 1 : 1;
+
+    const reps = lastSet?.reps ?? 10;
+    const weightKg =
+      lastSet?.weight_kg !== null && lastSet?.weight_kg !== undefined
+        ? lastSet.weight_kg
+        : null;
+
+    // Optimistically add
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimisticSet: WorkoutLogExercise = {
+      id: optimisticId,
+      workout_log_id: log.id,
+      exercise_id: exerciseId,
+      position,
+      set_number: nextSetNumber,
+      reps,
+      weight_kg: weightKg,
+      completed: false,
+      created_at: new Date().toISOString(),
+    };
+    setOptimisticExercises((prev) => [...prev, optimisticSet]);
 
     const result = await addLogExerciseSet(
       log.id,
       exerciseId,
       position,
-      lastSet?.reps ?? 10,
-      lastSet?.weight_kg !== null && lastSet?.weight_kg !== undefined
-        ? lastSet.weight_kg
-        : null,
+      reps,
+      weightKg,
       'kg', // stored in kg already
     );
-    if (!result.success) toast.error(result.error);
+    if (!result.success) {
+      toast.error(result.error);
+      // Revert on failure
+      setOptimisticExercises((prev) =>
+        prev.filter((e) => e.id !== optimisticId),
+      );
+    }
   };
 
   const handleComplete = async () => {

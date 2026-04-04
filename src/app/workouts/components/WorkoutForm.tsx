@@ -160,7 +160,9 @@ export default function WorkoutForm({ workout, weightUnit }: WorkoutFormProps) {
       {isEditing && (
         <>
           <div className='flex items-center justify-between'>
-            <h3 className='text-lg font-semibold'>Exercises</h3>
+            <h3 className='text-lg font-semibold'>
+              Exercises ({workout.exercises.length})
+            </h3>
             <Button
               variant='outline'
               size='sm'

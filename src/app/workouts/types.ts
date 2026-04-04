@@ -5,6 +5,7 @@ export type Workout = {
   description: string;
   created_at: string;
   updated_at: string;
+  exercise_count?: number;
 };
 
 export type WorkoutExercise = {

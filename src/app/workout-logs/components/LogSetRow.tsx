@@ -1,10 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
 import { convertFromBaseUnit } from '@/lib/utils';
 import type { UnitType } from '@/app/types';
 import type { WorkoutLogExercise } from '../types';
@@ -16,16 +14,14 @@ type LogSetRowProps = {
     id: string,
     reps: number,
     weight: number | null,
-    completed: boolean
+    completed: boolean,
   ) => void;
-  onRemove: (id: string) => void;
 };
 
 export default function LogSetRow({
   set,
   weightUnit,
   onUpdate,
-  onRemove,
 }: LogSetRowProps) {
   const displayWeight =
     set.weight_kg !== null
@@ -50,41 +46,34 @@ export default function LogSetRow({
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground w-6 text-center">
+    <div className='flex items-center gap-6'>
+      <span className='text-sm text-muted-foreground w-7 text-center font-medium'>
         {set.set_number}
       </span>
       <Input
-        type="number"
-        min="0"
+        type='number'
+        min='0'
         value={reps}
         onChange={(e) => setReps(e.target.value)}
         onBlur={handleBlur}
-        className="h-8 w-16 text-sm"
-        placeholder="Reps"
+        className='h-10 flex-1 min-w-0 text-base'
+        placeholder='Reps'
       />
       <Input
-        type="number"
-        min="0"
-        step="0.5"
+        type='number'
+        min='0'
+        step='0.5'
         value={weight}
         onChange={(e) => setWeight(e.target.value)}
         onBlur={handleBlur}
-        className="h-8 w-20 text-sm"
+        className='h-10 flex-1 min-w-0 text-base'
         placeholder={weightUnit}
       />
       <Checkbox
         checked={completed}
         onCheckedChange={handleCompletedChange}
+        className='h-6 w-6'
       />
-      <Button
-        size="icon"
-        variant="ghost"
-        className="h-6 w-6 text-muted-foreground"
-        onClick={() => onRemove(set.id)}
-      >
-        <Trash2 className="h-3 w-3" />
-      </Button>
     </div>
   );
 }

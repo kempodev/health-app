@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ export default function DaySlot({
   workouts,
 }: DaySlotProps) {
   const [adding, setAdding] = React.useState(false);
+  const [removeEntry, setRemoveEntry] = React.useState<ScheduleEntryWithWorkout | null>(null);
 
   const handleAdd = async (workoutId: string) => {
     setAdding(false);
@@ -65,7 +67,7 @@ export default function DaySlot({
             size="icon"
             variant="ghost"
             className="h-6 w-6 flex-shrink-0"
-            onClick={() => handleRemove(entry.id)}
+            onClick={() => setRemoveEntry(entry)}
           >
             <X className="h-3 w-3" />
           </Button>
@@ -97,6 +99,15 @@ export default function DaySlot({
           Add
         </Button>
       )}
+      <ConfirmDialog
+        title='Remove Workout'
+        description={`Remove "${removeEntry?.workout.name}" from ${DAY_LABELS[day]}?`}
+        open={!!removeEntry}
+        onOpenChange={(open) => { if (!open) setRemoveEntry(null); }}
+        onConfirm={() => { if (removeEntry) handleRemove(removeEntry.id); }}
+        confirmLabel='Remove'
+        pendingLabel='Removing...'
+      />
     </div>
   );
 }

@@ -85,6 +85,7 @@ export default async function WorkoutLogsPage() {
                     key={entry.id}
                     workoutId={entry.workout_id}
                     workoutName={entry.workout.name}
+                    scheduleEntryId={entry.id}
                     variant="ghost"
                   />
                 ))}

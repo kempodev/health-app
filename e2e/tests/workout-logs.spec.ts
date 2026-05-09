@@ -249,6 +249,82 @@ test.describe('Workout Logs', () => {
     await expect(page.getByPlaceholder('kg').nth(0)).toHaveValue('100');
   });
 
+  test('pre-fills carry over when exercises are reordered in template', async ({
+    page,
+    testUserId,
+  }) => {
+    // Template: Bench at position 0, Squat at position 1.
+    // Prior log: SAME exercises in OPPOSITE order — Squat at 0, Bench at 1.
+    // Carry-over should follow the exercise, not the position.
+    const workout = await seedWorkout(testUserId, { name: 'Mixed Day' });
+    await seedWorkoutExercise(workout.id, {
+      exercise_id: 'Barbell_Bench_Press_-_Medium_Grip',
+      position: 0,
+      sets: 3,
+      reps: 10,
+      weight_kg: 60,
+    });
+    await seedWorkoutExercise(workout.id, {
+      exercise_id: 'Barbell_Squat',
+      position: 1,
+      sets: 3,
+      reps: 10,
+      weight_kg: 60,
+    });
+    const schedule = await seedSchedule(testUserId, { is_active: true });
+    const entry = await seedScheduleEntry(schedule.id, workout.id, {
+      day_of_week: getTodayDayOfWeek(),
+    });
+
+    const priorLog = await seedWorkoutLog(testUserId, workout.id, entry.id, {
+      name: 'Mixed Day',
+      started_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      completed_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    // Prior log: Squat at position 0 with reps=5/weight=120
+    await seedWorkoutLogExercise(priorLog.id, {
+      exercise_id: 'Barbell_Squat',
+      position: 0,
+      set_number: 1,
+      reps: 5,
+      weight_kg: 120,
+    });
+    // Prior log: Bench at position 1 with reps=8/weight=85
+    await seedWorkoutLogExercise(priorLog.id, {
+      exercise_id: 'Barbell_Bench_Press_-_Medium_Grip',
+      position: 1,
+      set_number: 1,
+      reps: 8,
+      weight_kg: 85,
+    });
+
+    await page.goto('/workout-logs');
+    await page.getByRole('button', { name: 'Mixed Day' }).click();
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Start' })
+      .click();
+
+    await expect(
+      page.getByRole('heading', { name: 'Active Workout' })
+    ).toBeVisible();
+
+    // Bench (template position 0) auto-expands first.
+    // Its prior values came from prior position 1: reps=8, weight=85.
+    const repsInputs = page.getByPlaceholder('Reps');
+    const weightInputs = page.getByPlaceholder('kg');
+    await expect(repsInputs).toHaveCount(1);
+    await expect(repsInputs.nth(0)).toHaveValue('8');
+    await expect(weightInputs.nth(0)).toHaveValue('85');
+
+    // Expand Squat (template position 1).
+    // Its prior values came from prior position 0: reps=5, weight=120.
+    await page.getByText('Barbell Squat').click();
+    await expect(repsInputs).toHaveCount(1);
+    await expect(repsInputs.nth(0)).toHaveValue('5');
+    await expect(weightInputs.nth(0)).toHaveValue('120');
+  });
+
   test('uses template defaults when no prior session exists in schedule', async ({
     page,
     testUserId,

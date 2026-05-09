@@ -149,25 +149,49 @@ export async function startWorkoutLog(
       .limit(1)
       .maybeSingle();
 
-    const priorSetsByExercise = new Map<
+    // Per-exercise FIFO queue of "slots". Each slot is the set list from
+    // one (exercise_id, position) combo in the prior log, with slots
+    // ordered by their prior position. The Nth occurrence of an exercise
+    // in the new template consumes the Nth occurrence from the prior log,
+    // so reordering exercises doesn't break the carry-over.
+    const priorSlotsByExercise = new Map<
       string,
-      { reps: number; weight_kg: number | null }[]
+      { reps: number; weight_kg: number | null }[][]
     >();
     if (prevLog) {
       const { data: prevExercises } = await supabase
         .from('workout_log_exercises')
         .select('exercise_id, position, set_number, reps, weight_kg')
         .eq('workout_log_id', prevLog.id)
+        .order('position', { ascending: true })
         .order('set_number', { ascending: true });
 
       if (prevExercises) {
+        const byCombo = new Map<
+          string,
+          { reps: number; weight_kg: number | null }[]
+        >();
+        const comboOrder: { exerciseId: string; position: number }[] = [];
         for (const pe of prevExercises) {
           const key = `${pe.exercise_id}:${pe.position}`;
-          if (!priorSetsByExercise.has(key)) priorSetsByExercise.set(key, []);
-          priorSetsByExercise.get(key)!.push({
+          if (!byCombo.has(key)) {
+            byCombo.set(key, []);
+            comboOrder.push({
+              exerciseId: pe.exercise_id,
+              position: pe.position,
+            });
+          }
+          byCombo.get(key)!.push({
             reps: pe.reps,
             weight_kg: pe.weight_kg,
           });
+        }
+        for (const c of comboOrder) {
+          const sets = byCombo.get(`${c.exerciseId}:${c.position}`)!;
+          if (!priorSlotsByExercise.has(c.exerciseId)) {
+            priorSlotsByExercise.set(c.exerciseId, []);
+          }
+          priorSlotsByExercise.get(c.exerciseId)!.push(sets);
         }
       }
     }
@@ -176,9 +200,7 @@ export async function startWorkoutLog(
     if (templateExercises && templateExercises.length > 0) {
       const logExercises = [];
       for (const te of templateExercises) {
-        const priorSets = priorSetsByExercise.get(
-          `${te.exercise_id}:${te.position}`
-        );
+        const priorSets = priorSlotsByExercise.get(te.exercise_id)?.shift();
         if (priorSets && priorSets.length > 0) {
           priorSets.forEach((ps, idx) => {
             logExercises.push({

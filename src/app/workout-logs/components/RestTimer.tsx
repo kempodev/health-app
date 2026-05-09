@@ -11,6 +11,40 @@ type RestTimerProps = {
 
 export default function RestTimer({ seconds, onDone }: RestTimerProps) {
   const [remaining, setRemaining] = React.useState(seconds);
+  const audioCtxRef = React.useRef<AudioContext | null>(null);
+
+  const getAudioContext = React.useCallback(() => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    }
+    return audioCtxRef.current;
+  }, []);
+
+  const playBeep = React.useCallback(
+    (frequency: number, duration: number) => {
+      try {
+        const ctx = getAudioContext();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gain.gain.value = 0.3;
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + duration / 1000);
+      } catch {
+        // Audio not supported — fail silently
+      }
+    },
+    [getAudioContext],
+  );
+
+  React.useEffect(() => {
+    return () => {
+      audioCtxRef.current?.close();
+    };
+  }, []);
 
   React.useEffect(() => {
     setRemaining(seconds);
@@ -18,12 +52,16 @@ export default function RestTimer({ seconds, onDone }: RestTimerProps) {
 
   React.useEffect(() => {
     if (remaining <= 0) {
-      onDone();
-      return;
+      playBeep(880, 300);
+      const timeout = setTimeout(onDone, 350);
+      return () => clearTimeout(timeout);
+    }
+    if (remaining <= 3) {
+      playBeep(660, 150);
     }
     const timer = setTimeout(() => setRemaining((r) => r - 1), 1000);
     return () => clearTimeout(timer);
-  }, [remaining, onDone]);
+  }, [remaining, onDone, playBeep]);
 
   const progress = 1 - remaining / seconds;
   const minutes = Math.floor(remaining / 60);

@@ -93,17 +93,17 @@ export async function startWorkoutLog(
       return { success: false, error: 'No active schedule' };
     }
 
-    const { data: scheduleEntry } = await supabase
+    const { data: scheduleEntries } = await supabase
       .from('schedule_entries')
       .select('id')
       .eq('schedule_id', activeSchedule.id)
-      .eq('workout_id', workoutId)
-      .limit(1)
-      .single();
+      .eq('workout_id', workoutId);
 
-    if (!scheduleEntry) {
+    if (!scheduleEntries || scheduleEntries.length === 0) {
       return { success: false, error: 'Workout is not in the active schedule' };
     }
+
+    const scheduleEntryIds = scheduleEntries.map((e) => e.id);
 
     // Get workout template
     const { data: workout, error: workoutError } = await supabase
@@ -137,20 +137,73 @@ export async function startWorkoutLog(
 
     if (templateError) throw templateError;
 
+    // Find most recent completed log for this workout within the active schedule.
+    // Used to pre-fill reps/weights from prior session so user doesn't re-enter.
+    const { data: prevLog } = await supabase
+      .from('workout_logs')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('workout_id', workoutId)
+      .in('schedule_entry_id', scheduleEntryIds)
+      .not('completed_at', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const priorSetsByExercise = new Map<
+      string,
+      { reps: number; weight_kg: number | null }[]
+    >();
+    if (prevLog) {
+      const { data: prevExercises } = await supabase
+        .from('workout_log_exercises')
+        .select('exercise_id, position, set_number, reps, weight_kg')
+        .eq('workout_log_id', prevLog.id)
+        .order('set_number', { ascending: true });
+
+      if (prevExercises) {
+        for (const pe of prevExercises) {
+          const key = `${pe.exercise_id}:${pe.position}`;
+          if (!priorSetsByExercise.has(key)) priorSetsByExercise.set(key, []);
+          priorSetsByExercise.get(key)!.push({
+            reps: pe.reps,
+            weight_kg: pe.weight_kg,
+          });
+        }
+      }
+    }
+
     // Pre-populate log exercises (one row per set)
     if (templateExercises && templateExercises.length > 0) {
       const logExercises = [];
       for (const te of templateExercises) {
-        for (let s = 1; s <= te.sets; s++) {
-          logExercises.push({
-            workout_log_id: log.id,
-            exercise_id: te.exercise_id,
-            position: te.position,
-            set_number: s,
-            reps: te.reps,
-            weight_kg: te.weight_kg,
-            completed: false,
+        const priorSets = priorSetsByExercise.get(
+          `${te.exercise_id}:${te.position}`
+        );
+        if (priorSets && priorSets.length > 0) {
+          priorSets.forEach((ps, idx) => {
+            logExercises.push({
+              workout_log_id: log.id,
+              exercise_id: te.exercise_id,
+              position: te.position,
+              set_number: idx + 1,
+              reps: ps.reps,
+              weight_kg: ps.weight_kg,
+              completed: false,
+            });
           });
+        } else {
+          for (let s = 1; s <= te.sets; s++) {
+            logExercises.push({
+              workout_log_id: log.id,
+              exercise_id: te.exercise_id,
+              position: te.position,
+              set_number: s,
+              reps: te.reps,
+              weight_kg: te.weight_kg,
+              completed: false,
+            });
+          }
         }
       }
 

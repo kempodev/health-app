@@ -195,6 +195,62 @@ export async function seedScheduleEntry(
   return data;
 }
 
+export async function seedWorkoutLog(
+  userId: string,
+  workoutId: string,
+  scheduleEntryId: string,
+  overrides: {
+    name?: string;
+    started_at?: string;
+    completed_at?: string | null;
+  } = {}
+) {
+  const { data, error } = await getAdminClient()
+    .from('workout_logs')
+    .insert({
+      user_id: userId,
+      workout_id: workoutId,
+      schedule_entry_id: scheduleEntryId,
+      name: overrides.name ?? 'Test Log',
+      started_at: overrides.started_at ?? new Date().toISOString(),
+      completed_at: overrides.completed_at ?? new Date().toISOString(),
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function seedWorkoutLogExercise(
+  workoutLogId: string,
+  overrides: {
+    exercise_id?: string;
+    position?: number;
+    set_number?: number;
+    reps?: number;
+    weight_kg?: number | null;
+    completed?: boolean;
+  } = {}
+) {
+  const { data, error } = await getAdminClient()
+    .from('workout_log_exercises')
+    .insert({
+      workout_log_id: workoutLogId,
+      exercise_id: overrides.exercise_id ?? 'Barbell_Bench_Press_-_Medium_Grip',
+      position: overrides.position ?? 0,
+      set_number: overrides.set_number ?? 1,
+      reps: overrides.reps ?? 10,
+      weight_kg: overrides.weight_kg ?? 60,
+      completed: overrides.completed ?? true,
+    })
+    .select('id')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function cleanupTestData(userId: string) {
   const client = getAdminClient();
   // Gym features (cascade handles children, but delete in order for safety)

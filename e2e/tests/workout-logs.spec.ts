@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/test-fixtures';
 import {
   cleanupTestData,
+  seedPreference,
   seedSchedule,
   seedScheduleEntry,
   seedWorkout,
@@ -357,5 +358,63 @@ test.describe('Workout Logs', () => {
     await expect(repsInputs).toHaveCount(2);
     await expect(repsInputs.nth(0)).toHaveValue('12');
     await expect(page.getByPlaceholder('kg').nth(0)).toHaveValue('50');
+  });
+
+  test('weight input survives collapse/expand under lbs preference', async ({
+    page,
+    testUserId,
+  }) => {
+    // Regression: optimistic state used to store the typed lbs value into
+    // weight_kg as-is. After the inner LogSetRow remounted (collapse +
+    // expand), it re-converted that "kg" value to lbs for display,
+    // inflating the field (e.g. 100 → 220.5). A subsequent edit then
+    // wrote the inflated number back to the DB.
+    await seedPreference(testUserId, {
+      metric_type: 'weight',
+      unit: 'lbs',
+    });
+    const workout = await seedWorkout(testUserId, { name: 'Lbs Workout' });
+    await seedWorkoutExercise(workout.id, {
+      exercise_id: 'Barbell_Bench_Press_-_Medium_Grip',
+      position: 0,
+      sets: 1,
+      reps: 10,
+      weight_kg: null,
+      rest_seconds: 0,
+    });
+    const schedule = await seedSchedule(testUserId, { is_active: true });
+    await seedScheduleEntry(schedule.id, workout.id, {
+      day_of_week: getTodayDayOfWeek(),
+    });
+
+    await page.goto('/workout-logs');
+    await page.getByRole('button', { name: 'Lbs Workout' }).click();
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Start' })
+      .click();
+
+    await expect(
+      page.getByRole('heading', { name: 'Active Workout' })
+    ).toBeVisible();
+
+    // Field is labelled with the user's unit, so 'lbs' confirms the
+    // preference was applied.
+    const weightInput = page.getByPlaceholder('lbs');
+    await expect(weightInput).toHaveCount(1);
+
+    await weightInput.fill('100');
+    // Click the Done checkbox to flush handleUpdateSet. With every set
+    // completed the form auto-collapses the exercise (LogSetRow
+    // unmounts), which is exactly the trigger we need to re-init local
+    // state from the optimistic store.
+    await page.getByRole('checkbox').click();
+    await expect(page.getByPlaceholder('lbs')).toHaveCount(0);
+
+    // Re-expand and assert the value round-tripped through optimistic
+    // state correctly. Without the fix this read 220.5.
+    await page.getByText('Barbell Bench Press - Medium Grip').click();
+    await expect(page.getByPlaceholder('lbs')).toHaveValue('100');
+    await expect(page.getByPlaceholder('Reps')).toHaveValue('10');
   });
 });

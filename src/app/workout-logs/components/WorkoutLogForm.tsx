@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { convertToBaseUnit } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,10 +160,18 @@ export default function WorkoutLogForm({
     weight: number | null,
     completed: boolean,
   ) => {
-    // Optimistically update the set
+    // weight is in display units (e.g. lbs); convert to kg so the
+    // optimistic state matches the schema. Without this, a remount of
+    // LogSetRow (e.g. collapse/expand) would re-display the lbs value
+    // as if it were kg, then a follow-up edit sends the inflated number
+    // to the server and corrupts the row.
+    const weightKg =
+      weight !== null
+        ? convertToBaseUnit(weight, weightUnit, 'weight')
+        : null;
     setOptimisticExercises((prev) =>
       prev.map((e) =>
-        e.id === id ? { ...e, reps, weight_kg: weight, completed } : e,
+        e.id === id ? { ...e, reps, weight_kg: weightKg, completed } : e,
       ),
     );
 

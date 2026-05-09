@@ -192,6 +192,63 @@ test.describe('Workout Logs', () => {
     await expect(weightInputs.nth(2)).toHaveValue('85');
   });
 
+  test('pre-fills from prior log even when schedule_entry_id is null', async ({
+    page,
+    testUserId,
+  }) => {
+    // Simulates a legacy log (or one started from "Other Workouts") whose
+    // schedule_entry_id is null — either because it was never set, or because
+    // ON DELETE SET NULL fired when the schedule was edited.
+    const workout = await seedWorkout(testUserId, { name: 'Push Day' });
+    await seedWorkoutExercise(workout.id, {
+      exercise_id: 'Barbell_Bench_Press_-_Medium_Grip',
+      position: 0,
+      sets: 3,
+      reps: 10,
+      weight_kg: 60,
+    });
+    const schedule = await seedSchedule(testUserId, { is_active: true });
+    await seedScheduleEntry(schedule.id, workout.id, {
+      day_of_week: getTodayDayOfWeek(),
+    });
+
+    const priorLog = await seedWorkoutLog(testUserId, workout.id, null, {
+      name: 'Push Day',
+      started_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      completed_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    await seedWorkoutLogExercise(priorLog.id, {
+      exercise_id: 'Barbell_Bench_Press_-_Medium_Grip',
+      position: 0,
+      set_number: 1,
+      reps: 5,
+      weight_kg: 100,
+    });
+    await seedWorkoutLogExercise(priorLog.id, {
+      exercise_id: 'Barbell_Bench_Press_-_Medium_Grip',
+      position: 0,
+      set_number: 2,
+      reps: 5,
+      weight_kg: 100,
+    });
+
+    await page.goto('/workout-logs');
+    await page.getByRole('button', { name: 'Push Day' }).click();
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Start' })
+      .click();
+
+    await expect(
+      page.getByRole('heading', { name: 'Active Workout' })
+    ).toBeVisible();
+
+    const repsInputs = page.getByPlaceholder('Reps');
+    await expect(repsInputs).toHaveCount(2);
+    await expect(repsInputs.nth(0)).toHaveValue('5');
+    await expect(page.getByPlaceholder('kg').nth(0)).toHaveValue('100');
+  });
+
   test('uses template defaults when no prior session exists in schedule', async ({
     page,
     testUserId,

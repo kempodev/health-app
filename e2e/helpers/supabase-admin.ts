@@ -198,7 +198,7 @@ export async function seedScheduleEntry(
 export async function seedWorkoutLog(
   userId: string,
   workoutId: string,
-  scheduleEntryId: string,
+  scheduleEntryId: string | null,
   overrides: {
     name?: string;
     started_at?: string;

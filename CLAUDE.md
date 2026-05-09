@@ -45,7 +45,7 @@ Server Actions (src/app/*/actions.ts) ← Server Components
 - **Dashboard:** [src/app/dashboard/](src/app/dashboard/) — shows latest values for weight, waist, body_fat
 - **Workouts:** [src/app/workouts/actions.ts](src/app/workouts/actions.ts) — CRUD workout templates, add/remove/reorder exercises, duplicate workouts
 - **Schedules:** [src/app/schedules/actions.ts](src/app/schedules/actions.ts) — CRUD weekly schedules, assign workouts to days, set active schedule
-- **Workout Logs:** [src/app/workout-logs/actions.ts](src/app/workout-logs/actions.ts) — start/complete workout sessions, log sets/reps/weights. When starting a session, `startWorkoutLog` pre-fills sets from the most recent completed log of the same workout within the active schedule (matching by exercise_id + position); falls back to template defaults for new exercises or first time
+- **Workout Logs:** [src/app/workout-logs/actions.ts](src/app/workout-logs/actions.ts) — start/complete workout sessions, log sets/reps/weights. When starting a session, `startWorkoutLog` pre-fills sets from the most recent completed log of the same workout (matching by exercise_id + position); falls back to template defaults for new exercises or first time
 - **Exercise data:** [src/lib/exercises.ts](src/lib/exercises.ts) — loads static exercise data from `exercises.json` (873 exercises), search/filter utilities
 
 ### Database Schema

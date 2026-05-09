@@ -103,8 +103,6 @@ export async function startWorkoutLog(
       return { success: false, error: 'Workout is not in the active schedule' };
     }
 
-    const scheduleEntryIds = scheduleEntries.map((e) => e.id);
-
     // Get workout template
     const { data: workout, error: workoutError } = await supabase
       .from('workouts')
@@ -137,14 +135,15 @@ export async function startWorkoutLog(
 
     if (templateError) throw templateError;
 
-    // Find most recent completed log for this workout within the active schedule.
-    // Used to pre-fill reps/weights from prior session so user doesn't re-enter.
+    // Find most recent completed log of this workout to pre-fill reps/weights
+    // from prior session. Scoped by workout only — schedule_entry_id is
+    // ON DELETE SET NULL and isn't always populated, so filtering by it
+    // would silently miss most legacy logs.
     const { data: prevLog } = await supabase
       .from('workout_logs')
       .select('id')
       .eq('user_id', user.id)
       .eq('workout_id', workoutId)
-      .in('schedule_entry_id', scheduleEntryIds)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(1)

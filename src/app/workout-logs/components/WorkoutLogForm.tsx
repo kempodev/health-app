@@ -7,6 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import type { UnitType } from '@/app/types';
 import type { WorkoutLogExercise, WorkoutLogWithExercises } from '../types';
 import {
@@ -333,14 +344,32 @@ export default function WorkoutLogForm({
           />
         </div>
 
-        <Button
-          onClick={handleComplete}
-          disabled={isCompleting}
-          className='w-full'
-          size='lg'
-        >
-          {isCompleting ? 'Completing...' : 'Complete Workout'}
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              disabled={isCompleting}
+              className='w-full'
+              size='lg'
+            >
+              {isCompleting ? 'Completing...' : 'Complete Workout'}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Complete workout?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will end your current workout session. You won&apos;t be
+                able to add more sets after completing.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleComplete}>
+                Complete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );

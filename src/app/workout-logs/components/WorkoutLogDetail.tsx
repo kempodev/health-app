@@ -22,12 +22,16 @@ export default function WorkoutLogDetail({
   const exerciseGroups = React.useMemo(() => {
     const groups: Map<
       string,
-      { exerciseId: string; sets: typeof log.exercises }
+      { exerciseId: string; position: number; sets: typeof log.exercises }
     > = new Map();
     for (const ex of log.exercises) {
       const key = `${ex.position}-${ex.exercise_id}`;
       if (!groups.has(key)) {
-        groups.set(key, { exerciseId: ex.exercise_id, sets: [] });
+        groups.set(key, {
+          exerciseId: ex.exercise_id,
+          position: ex.position,
+          sets: [],
+        });
       }
       groups.get(key)!.sets.push(ex);
     }
@@ -63,7 +67,7 @@ export default function WorkoutLogDetail({
         {exerciseGroups.map((group) => {
           const exercise = getExerciseById(group.exerciseId);
           return (
-            <div key={group.exerciseId} className="space-y-2">
+            <div key={`${group.position}-${group.exerciseId}`} className="space-y-2">
               <div className="flex items-center gap-2">
                 {exercise?.images[0] && (
                   <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded">

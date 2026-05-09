@@ -33,14 +33,26 @@ export default function WorkoutLogForm({
   const router = useRouter();
   const [isCompleting, setIsCompleting] = React.useState(false);
   const [notes, setNotes] = React.useState(log.notes);
-  const [optimisticExercises, setOptimisticExercises] = React.useState(log.exercises);
-  const [restTimerSeconds, setRestTimerSeconds] = React.useState<number | null>(null);
+  const [optimisticExercises, setOptimisticExercises] = React.useState(
+    log.exercises,
+  );
+  const [restTimerSeconds, setRestTimerSeconds] = React.useState<number | null>(
+    null,
+  );
   const [expandedKey, setExpandedKey] = React.useState<string | null>(null);
   const [wakeLock, setWakeLock] = React.useState<WakeLockSentinel | null>(null);
   const [wakeLockSupported, setWakeLockSupported] = React.useState(false);
 
   React.useEffect(() => {
-    setWakeLockSupported('wakeLock' in navigator);
+    const supported = 'wakeLock' in navigator;
+    setWakeLockSupported(supported);
+
+    if (supported && localStorage.getItem('wakeLockEnabled') === 'true') {
+      navigator.wakeLock
+        .request('screen')
+        .then((lock) => setWakeLock(lock))
+        .catch(() => {});
+    }
   }, []);
 
   // Release wake lock on unmount
@@ -66,18 +78,21 @@ export default function WorkoutLogForm({
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [wakeLock]);
 
   const toggleWakeLock = async () => {
     if (wakeLock) {
       await wakeLock.release();
       setWakeLock(null);
-      toast.success('Screen lock enabled');
+      localStorage.setItem('wakeLockEnabled', 'false');
+      toast.success('Screen lock disabled');
     } else {
       try {
         const lock = await navigator.wakeLock.request('screen');
         setWakeLock(lock);
+        localStorage.setItem('wakeLockEnabled', 'true');
         toast.success('Screen will stay on');
       } catch {
         toast.error('Could not keep screen on');
@@ -252,82 +267,81 @@ export default function WorkoutLogForm({
 
   return (
     <>
-    {restTimerSeconds !== null && (
-      <RestTimer
-        seconds={restTimerSeconds}
-        onDone={() => setRestTimerSeconds(null)}
-      />
-    )}
-    <div className='space-y-4'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h2 className='text-xl font-bold'>{log.name}</h2>
-          <p className='text-sm text-muted-foreground'>
-            Started {new Date(log.started_at).toLocaleString()}
-          </p>
+      {restTimerSeconds !== null && (
+        <RestTimer
+          seconds={restTimerSeconds}
+          onDone={() => setRestTimerSeconds(null)}
+        />
+      )}
+      <div className='space-y-4'>
+        <div className='flex items-center justify-between'>
+          <div>
+            <h2 className='text-xl font-bold'>{log.name}</h2>
+            <p className='text-sm text-muted-foreground'>
+              Started {new Date(log.started_at).toLocaleString()}
+            </p>
+          </div>
         </div>
-      </div>
 
-      {wakeLockSupported && (
-        <div className='flex items-center justify-between rounded-lg border p-3'>
-          <Label htmlFor='wake-lock' className='text-sm'>
-            Keep screen on
+        {wakeLockSupported && (
+          <div className='flex items-center justify-between rounded-lg border p-3'>
+            <Label htmlFor='wake-lock' className='text-sm'>
+              Keep screen on
+            </Label>
+            <Switch
+              id='wake-lock'
+              checked={!!wakeLock}
+              onCheckedChange={toggleWakeLock}
+            />
+          </div>
+        )}
+
+        <div className='space-y-3'>
+          {exerciseGroups.map((group) => {
+            const key = `${group.position}-${group.exerciseId}`;
+            return (
+              <LogExerciseRow
+                key={key}
+                exerciseId={group.exerciseId}
+                position={group.position}
+                sets={group.sets}
+                weightUnit={weightUnit}
+                restSeconds={restSecondsMap[group.exerciseId] ?? 0}
+                expanded={activeKey === key}
+                onToggle={() =>
+                  setExpandedKey(activeKey === key ? 'none' : key)
+                }
+                onUpdateSet={handleUpdateSet}
+                onRemoveSet={handleRemoveSet}
+                onAddSet={handleAddSet}
+              />
+            );
+          })}
+        </div>
+
+        <div>
+          <Label htmlFor='notes' className='mb-2'>
+            Notes
           </Label>
-          <Switch
-            id='wake-lock'
-            checked={!!wakeLock}
-            onCheckedChange={toggleWakeLock}
+          <Textarea
+            id='notes'
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={handleNotesBlur}
+            placeholder='How did it go?'
+            rows={2}
           />
         </div>
-      )}
 
-      <div className='space-y-3'>
-        {exerciseGroups.map((group) => {
-          const key = `${group.position}-${group.exerciseId}`;
-          return (
-            <LogExerciseRow
-              key={key}
-              exerciseId={group.exerciseId}
-              position={group.position}
-              sets={group.sets}
-              weightUnit={weightUnit}
-              restSeconds={restSecondsMap[group.exerciseId] ?? 0}
-              expanded={activeKey === key}
-              onToggle={() =>
-                setExpandedKey(activeKey === key ? 'none' : key)
-              }
-              onUpdateSet={handleUpdateSet}
-              onRemoveSet={handleRemoveSet}
-              onAddSet={handleAddSet}
-            />
-          );
-        })}
+        <Button
+          onClick={handleComplete}
+          disabled={isCompleting}
+          className='w-full'
+          size='lg'
+        >
+          {isCompleting ? 'Completing...' : 'Complete Workout'}
+        </Button>
       </div>
-
-      <div>
-        <Label htmlFor='notes' className='mb-2'>
-          Notes
-        </Label>
-        <Textarea
-          id='notes'
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          onBlur={handleNotesBlur}
-          placeholder='How did it go?'
-          rows={2}
-        />
-      </div>
-
-      <Button
-        onClick={handleComplete}
-        disabled={isCompleting}
-        className='w-full'
-        size='lg'
-      >
-        {isCompleting ? 'Completing...' : 'Complete Workout'}
-      </Button>
-    </div>
     </>
   );
 }
-

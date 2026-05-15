@@ -66,6 +66,8 @@ export default function WorkoutLogDetail({
       <div className="space-y-4">
         {exerciseGroups.map((group) => {
           const exercise = getExerciseById(group.exerciseId);
+          const note =
+            group.sets.find((s) => s.set_number === 1)?.notes?.trim() ?? '';
           return (
             <div key={`${group.position}-${group.exerciseId}`} className="space-y-2">
               <div className="flex items-center gap-2">
@@ -84,6 +86,11 @@ export default function WorkoutLogDetail({
                   {exercise?.name ?? group.exerciseId}
                 </p>
               </div>
+              {note && (
+                <p className="ml-10 text-sm italic text-muted-foreground whitespace-pre-wrap">
+                  {note}
+                </p>
+              )}
               <div className="ml-10 space-y-1">
                 {group.sets.map((set) => (
                   <div

@@ -45,7 +45,7 @@ Server Actions (src/app/*/actions.ts) ← Server Components
 - **Dashboard:** [src/app/dashboard/](src/app/dashboard/) — shows latest values for weight, waist, body_fat
 - **Workouts:** [src/app/workouts/actions.ts](src/app/workouts/actions.ts) — CRUD workout templates, add/remove/reorder exercises, duplicate workouts
 - **Schedules:** [src/app/schedules/actions.ts](src/app/schedules/actions.ts) — CRUD weekly schedules, assign workouts to days, set active schedule
-- **Workout Logs:** [src/app/workout-logs/actions.ts](src/app/workout-logs/actions.ts) — start/complete workout sessions, log sets/reps/weights. When starting a session, `startWorkoutLog` pre-fills sets from the most recent completed log of the same workout. Matching is by `exercise_id` only (Nth occurrence in the new template gets the Nth occurrence from the prior log), so reordering exercises doesn't break carry-over. Falls back to template defaults for new exercises or first time
+- **Workout Logs:** [src/app/workout-logs/actions.ts](src/app/workout-logs/actions.ts) — start/complete workout sessions, log sets/reps/weights. When starting a session, `startWorkoutLog` pre-fills sets from the most recent completed log of the same workout. Matching is by `exercise_id` only (Nth occurrence in the new template gets the Nth occurrence from the prior log), so reordering exercises doesn't break carry-over. Falls back to template defaults for new exercises or first time. Per-exercise free-text notes (e.g. "increase reps next time") are stored on `workout_log_exercises.notes` of the `set_number = 1` row for each `(workout_log_id, position)` group, and carried forward by the same Nth-occurrence logic
 - **Exercise data:** [src/lib/exercises.ts](src/lib/exercises.ts) — loads static exercise data from `exercises.json` (873 exercises), search/filter utilities
 
 ### Database Schema
@@ -62,7 +62,7 @@ Tables in Supabase `public` schema with RLS enabled. All reference `auth.users(i
 | `weekly_schedules`      | Named weekly schedules with is_active flag. Partial unique index on active                |
 | `schedule_entries`      | Workout-to-day assignments. UNIQUE(schedule_id, workout_id, day_of_week)                  |
 | `workout_logs`          | Completed/in-progress workout sessions. Snapshots workout name                            |
-| `workout_log_exercises` | Individual sets performed (exercise_id, set_number, reps, weight_kg, completed)           |
+| `workout_log_exercises` | Individual sets performed (exercise_id, set_number, reps, weight_kg, completed, notes). `notes` is per-exercise, conventionally stored on the `set_number = 1` row |
 
 **Enums (PostgreSQL):**
 

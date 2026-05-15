@@ -231,6 +231,7 @@ export async function seedWorkoutLogExercise(
     reps?: number;
     weight_kg?: number | null;
     completed?: boolean;
+    notes?: string;
   } = {}
 ) {
   const { data, error } = await getAdminClient()
@@ -243,6 +244,7 @@ export async function seedWorkoutLogExercise(
       reps: overrides.reps ?? 10,
       weight_kg: overrides.weight_kg ?? 60,
       completed: overrides.completed ?? true,
+      notes: overrides.notes ?? '',
     })
     .select('id')
     .single();

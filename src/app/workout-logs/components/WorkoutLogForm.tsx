@@ -27,6 +27,7 @@ import {
   removeLogExerciseSet,
   completeWorkoutLog,
   updateWorkoutLogNotes,
+  updateLogExerciseNote,
 } from '../actions';
 import LogExerciseRow from './LogExerciseRow';
 import RestTimer from './RestTimer';
@@ -219,6 +220,21 @@ export default function WorkoutLogForm({
     }
   };
 
+  const handleUpdateNote = async (position: number, notes: string) => {
+    // Optimistically update the set_number = 1 row for this exercise group.
+    setOptimisticExercises((prev) =>
+      prev.map((e) =>
+        e.position === position && e.set_number === 1 ? { ...e, notes } : e,
+      ),
+    );
+
+    const result = await updateLogExerciseNote(log.id, position, notes);
+    if (!result.success) {
+      toast.error(result.error);
+      setOptimisticExercises(log.exercises);
+    }
+  };
+
   const handleAddSet = async (exerciseId: string, position: number) => {
     const setsForExercise = optimisticExercises
       .filter((e) => e.exercise_id === exerciseId && e.position === position)
@@ -243,6 +259,7 @@ export default function WorkoutLogForm({
       reps,
       weight_kg: weightKg,
       completed: false,
+      notes: '',
       created_at: new Date().toISOString(),
     };
     setOptimisticExercises((prev) => [...prev, optimisticSet]);
@@ -334,6 +351,7 @@ export default function WorkoutLogForm({
                 onUpdateSet={handleUpdateSet}
                 onRemoveSet={handleRemoveSet}
                 onAddSet={handleAddSet}
+                onUpdateNote={handleUpdateNote}
               />
             );
           })}

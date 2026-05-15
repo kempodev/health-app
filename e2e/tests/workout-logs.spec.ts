@@ -360,6 +360,63 @@ test.describe('Workout Logs', () => {
     await expect(page.getByPlaceholder('kg').nth(0)).toHaveValue('50');
   });
 
+  test('per-exercise note carries over from prior completed log', async ({
+    page,
+    testUserId,
+  }) => {
+    const workout = await seedWorkout(testUserId, { name: 'Note Day' });
+    await seedWorkoutExercise(workout.id, {
+      exercise_id: 'Barbell_Squat',
+      position: 0,
+      sets: 2,
+      reps: 10,
+      weight_kg: 60,
+    });
+    const schedule = await seedSchedule(testUserId, { is_active: true });
+    const entry = await seedScheduleEntry(schedule.id, workout.id, {
+      day_of_week: getTodayDayOfWeek(),
+    });
+
+    const priorLog = await seedWorkoutLog(testUserId, workout.id, entry.id, {
+      name: 'Note Day',
+      started_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      completed_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    // Note lives on the set_number = 1 row.
+    await seedWorkoutLogExercise(priorLog.id, {
+      exercise_id: 'Barbell_Squat',
+      position: 0,
+      set_number: 1,
+      reps: 8,
+      weight_kg: 80,
+      notes: 'Increase reps next time',
+    });
+    await seedWorkoutLogExercise(priorLog.id, {
+      exercise_id: 'Barbell_Squat',
+      position: 0,
+      set_number: 2,
+      reps: 8,
+      weight_kg: 80,
+    });
+
+    await page.goto('/workout-logs');
+    await page.getByRole('button', { name: 'Note Day' }).click();
+    await page
+      .getByRole('alertdialog')
+      .getByRole('button', { name: 'Start' })
+      .click();
+
+    await expect(
+      page.getByRole('heading', { name: 'Active Workout' })
+    ).toBeVisible();
+
+    // Open the note sheet via the edit-note button and confirm the carried text.
+    await page.getByRole('button', { name: 'Edit note' }).click();
+    await expect(
+      page.getByPlaceholder('e.g. Increase reps next time, form felt good')
+    ).toHaveValue('Increase reps next time');
+  });
+
   test('weight input survives collapse/expand under lbs preference', async ({
     page,
     testUserId,

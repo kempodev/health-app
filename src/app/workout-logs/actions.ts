@@ -154,55 +154,57 @@ export async function startWorkoutLog(
     // ordered by their prior position. The Nth occurrence of an exercise
     // in the new template consumes the Nth occurrence from the prior log,
     // so reordering exercises doesn't break the carry-over.
-    const priorSlotsByExercise = new Map<
-      string,
-      { reps: number; weight_kg: number | null }[][]
-    >();
+    // Each slot carries the prior set list plus a single per-exercise
+    // note (read from the first set row of that combo in the prior log).
+    type PriorSlot = {
+      sets: { reps: number; weight_kg: number | null }[];
+      notes: string;
+    };
+    const priorSlotsByExercise = new Map<string, PriorSlot[]>();
     if (prevLog) {
       const { data: prevExercises } = await supabase
         .from('workout_log_exercises')
-        .select('exercise_id, position, set_number, reps, weight_kg')
+        .select('exercise_id, position, set_number, reps, weight_kg, notes')
         .eq('workout_log_id', prevLog.id)
         .order('position', { ascending: true })
         .order('set_number', { ascending: true });
 
       if (prevExercises) {
-        const byCombo = new Map<
-          string,
-          { reps: number; weight_kg: number | null }[]
-        >();
+        const byCombo = new Map<string, PriorSlot>();
         const comboOrder: { exerciseId: string; position: number }[] = [];
         for (const pe of prevExercises) {
           const key = `${pe.exercise_id}:${pe.position}`;
           if (!byCombo.has(key)) {
-            byCombo.set(key, []);
+            byCombo.set(key, { sets: [], notes: pe.notes ?? '' });
             comboOrder.push({
               exerciseId: pe.exercise_id,
               position: pe.position,
             });
           }
-          byCombo.get(key)!.push({
+          byCombo.get(key)!.sets.push({
             reps: pe.reps,
             weight_kg: pe.weight_kg,
           });
         }
         for (const c of comboOrder) {
-          const sets = byCombo.get(`${c.exerciseId}:${c.position}`)!;
+          const slot = byCombo.get(`${c.exerciseId}:${c.position}`)!;
           if (!priorSlotsByExercise.has(c.exerciseId)) {
             priorSlotsByExercise.set(c.exerciseId, []);
           }
-          priorSlotsByExercise.get(c.exerciseId)!.push(sets);
+          priorSlotsByExercise.get(c.exerciseId)!.push(slot);
         }
       }
     }
 
-    // Pre-populate log exercises (one row per set)
+    // Pre-populate log exercises (one row per set). The per-exercise
+    // note is stored on the set_number = 1 row by convention; other set
+    // rows keep notes = ''.
     if (templateExercises && templateExercises.length > 0) {
       const logExercises = [];
       for (const te of templateExercises) {
-        const priorSets = priorSlotsByExercise.get(te.exercise_id)?.shift();
-        if (priorSets && priorSets.length > 0) {
-          priorSets.forEach((ps, idx) => {
+        const priorSlot = priorSlotsByExercise.get(te.exercise_id)?.shift();
+        if (priorSlot && priorSlot.sets.length > 0) {
+          priorSlot.sets.forEach((ps, idx) => {
             logExercises.push({
               workout_log_id: log.id,
               exercise_id: te.exercise_id,
@@ -211,6 +213,7 @@ export async function startWorkoutLog(
               reps: ps.reps,
               weight_kg: ps.weight_kg,
               completed: false,
+              notes: idx === 0 ? priorSlot.notes : '',
             });
           });
         } else {
@@ -223,6 +226,7 @@ export async function startWorkoutLog(
               reps: te.reps,
               weight_kg: te.weight_kg,
               completed: false,
+              notes: '',
             });
           }
         }
@@ -406,6 +410,33 @@ export async function updateWorkoutLogNotes(
   } catch (e) {
     console.error('Error updating workout log notes:', e);
     return { success: false, error: 'Failed to update notes' };
+  }
+}
+
+export async function updateLogExerciseNote(
+  workoutLogId: string,
+  position: number,
+  notes: string
+): Promise<ActionResult<void>> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Not authenticated' };
+
+    const { error } = await supabase
+      .from('workout_log_exercises')
+      .update({ notes })
+      .eq('workout_log_id', workoutLogId)
+      .eq('position', position)
+      .eq('set_number', 1);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (e) {
+    console.error('Error updating log exercise note:', e);
+    return { success: false, error: 'Failed to update note' };
   }
 }
 

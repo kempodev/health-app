@@ -2,13 +2,22 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { ChevronDown, ChevronRight, Info, Minus, Plus, Timer } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  Info,
+  MessageSquare,
+  Minus,
+  Plus,
+  Timer,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getExerciseById, getExerciseImageUrl } from '@/lib/exercises';
 import type { Exercise, UnitType } from '@/app/types';
 import type { WorkoutLogExercise } from '../types';
 import ExerciseDetailSheet from '@/app/workouts/components/ExerciseDetailSheet';
+import ExerciseNoteSheet from './ExerciseNoteSheet';
 import LogSetRow from './LogSetRow';
 
 type LogExerciseRowProps = {
@@ -25,6 +34,7 @@ type LogExerciseRowProps = {
   ) => void;
   onRemoveSet: (id: string) => void;
   onAddSet: (exerciseId: string, position: number) => void;
+  onUpdateNote: (position: number, notes: string) => void;
   expanded: boolean;
   onToggle: () => void;
 };
@@ -38,6 +48,7 @@ export default function LogExerciseRow({
   onUpdateSet,
   onRemoveSet,
   onAddSet,
+  onUpdateNote,
   expanded,
   onToggle,
 }: LogExerciseRowProps) {
@@ -45,9 +56,12 @@ export default function LogExerciseRow({
   const [detailExercise, setDetailExercise] = React.useState<Exercise | null>(
     null,
   );
+  const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
 
   const completedCount = sets.filter((s) => s.completed).length;
   const allCompleted = completedCount === sets.length;
+  const note = sets.find((s) => s.set_number === 1)?.notes ?? '';
+  const hasNote = note.trim().length > 0;
 
   return (
     <>
@@ -80,9 +94,12 @@ export default function LogExerciseRow({
               </span>
               <div className='flex flex-wrap items-center gap-1 mt-0.5'>
                 {!expanded && (
-                  <span className='text-xs text-muted-foreground'>
+                  <span className='inline-flex items-center gap-1 text-xs text-muted-foreground'>
                     {completedCount}/{sets.length} sets
                     {allCompleted && ' \u2713'}
+                    {hasNote && (
+                      <MessageSquare className='h-3 w-3 text-muted-foreground' />
+                    )}
                   </span>
                 )}
                 {expanded && exercise?.primaryMuscles.map((m) => (
@@ -99,14 +116,33 @@ export default function LogExerciseRow({
               </div>
             </div>
           </button>
-          {expanded && exercise && (
-            <button
-              type='button'
-              className='shrink-0 p-2 text-muted-foreground hover:text-foreground'
-              onClick={() => setDetailExercise(exercise)}
-            >
-              <Info className='h-4 w-4' />
-            </button>
+          {expanded && (
+            <>
+              <button
+                type='button'
+                aria-label={hasNote ? 'Edit note' : 'Add note'}
+                className={`shrink-0 p-2 ${
+                  hasNote
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                onClick={() => setNoteSheetOpen(true)}
+              >
+                <MessageSquare
+                  className='h-4 w-4'
+                  fill={hasNote ? 'currentColor' : 'none'}
+                />
+              </button>
+              {exercise && (
+                <button
+                  type='button'
+                  className='shrink-0 p-2 text-muted-foreground hover:text-foreground'
+                  onClick={() => setDetailExercise(exercise)}
+                >
+                  <Info className='h-4 w-4' />
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -160,6 +196,13 @@ export default function LogExerciseRow({
         onOpenChange={(open) => {
           if (!open) setDetailExercise(null);
         }}
+      />
+      <ExerciseNoteSheet
+        exerciseName={exercise?.name ?? exerciseId}
+        initialNote={note}
+        open={noteSheetOpen}
+        onOpenChange={setNoteSheetOpen}
+        onSave={(updated) => onUpdateNote(position, updated)}
       />
     </>
   );

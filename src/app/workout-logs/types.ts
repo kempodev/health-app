@@ -19,6 +19,7 @@ export type WorkoutLogExercise = {
   reps: number;
   weight_kg: number | null;
   completed: boolean;
+  notes: string;
   created_at: string;
 };
 
